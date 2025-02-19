@@ -1,152 +1,88 @@
-import { Profile } from '../types/database';
-import {
-  QuestionnaireCompatibility,
-  CategoryScore,
-  MATCH_SCORES,
-  CATEGORY_WEIGHTS,
-  RATING_CATEGORIES
+import { 
+  CompatibilityScore, 
+  CompatibilityDetails,
+  ZodiacSign,
+  PlanetaryBody,
+  NatalChart,
+  BaseCompatibilityScore,
+  AstrologicalCompatibilityScore,
+  BirthData
 } from '../types/compatibility';
+import { createNatalChart, getDefaultPlanetPositions } from './birthData';
+import { calculateAstrologicalCompatibility, getAstrologicalCompatibilityDetails } from './astrological';
+import { calculateAspectCompatibility, getAspectDetails } from './aspects';
 
-type RatingType = 'values' | 'lifestyle' | 'personality';
+// Calculate astrological compatibility (50% of total)
+function calculateAstrologicalScore(
+  birthData1: BirthData,
+  birthData2: BirthData
+): AstrologicalCompatibilityScore {
+  // Create natal charts from birth data
+  const natalData1 = createNatalChart(birthData1);
+  const natalData2 = createNatalChart(birthData2);
 
-function compareRatings(
-  rating1: number,
-  rating2: number,
-  threshold: number = 2
-): number {
-  const difference = Math.abs(rating1 - rating2);
+  const sign1 = natalData1.sign;
+  const sign2 = natalData2.sign;
+
+  // Extract natal charts for aspect calculations
+  const chart1: NatalChart = {
+    planetPositions: natalData1.planetPositions || getDefaultPlanetPositions(sign1)
+  };
+  const chart2: NatalChart = {
+    planetPositions: natalData2.planetPositions || getDefaultPlanetPositions(sign2)
+  };
+
+  // Calculate aspect compatibility (25% of astrological)
+  const aspectScore = calculateAspectCompatibility(chart1, chart2);
+
+  // Calculate element compatibility (25% of astrological)
+  const elementScore = calculateAstrologicalCompatibility(sign1, sign2);
+
+  // Calculate total astrological score
+  const total = Math.round(
+    (aspectScore.total * 0.5) + 
+    ((elementScore.elementScore + elementScore.signModifier) * 0.5)
+  );
+
+  return {
+    total,
+    aspect: aspectScore,
+    element: elementScore
+  };
+}
+
+// Calculate overall compatibility score
+export const calculateCompatibility = (
+  birthData1: BirthData,
+  birthData2: BirthData,
+  questionnaireScore?: number
+): CompatibilityDetails => {
+  // Calculate astrological compatibility (50% of total)
+  const astrological = calculateAstrologicalScore(birthData1, birthData2);
   
-  if (difference <= 1) {
-    return MATCH_SCORES.EXACT;
-  } else if (difference <= threshold) {
-    return MATCH_SCORES.COMPLEMENTARY;
-  } else if (difference <= threshold + 1) {
-    return MATCH_SCORES.NEUTRAL;
-  }
-  return MATCH_SCORES.OPPOSING;
-}
+  // Get signs for details
+  const sign1 = createNatalChart(birthData1).sign;
+  const sign2 = createNatalChart(birthData2).sign;
+  
+  // Use provided questionnaire score or default to middle value
+  const questionnaire = questionnaireScore ?? 50;
 
-function calculateCategoryRatingScore(
-  profile1: Profile,
-  profile2: Profile,
-  ratingType: RatingType,
-  ratingKeys: string[]
-): number {
-  const getRatings = (profile: Profile, type: RatingType) => {
-    switch (type) {
-      case 'values':
-        return profile.values_ratings;
-      case 'lifestyle':
-        return profile.lifestyle_ratings;
-      case 'personality':
-        return profile.personality_ratings;
-    }
-  };
+  // Calculate total score (50% questionnaire, 50% astrological)
+  const total = Math.round((questionnaire * 0.5) + (astrological.total * 0.5));
 
-  const ratings1 = getRatings(profile1, ratingType);
-  const ratings2 = getRatings(profile2, ratingType);
-
-  if (!ratings1 || !ratings2) return 0;
-
-  const scores = ratingKeys.map(key => {
-    if (ratings1[key] === undefined || ratings2[key] === undefined) {
-      return 0;
-    }
-    return compareRatings(ratings1[key], ratings2[key]);
-  });
-
-  return scores.reduce((sum, score) => sum + score, 0) / scores.length;
-}
-
-function calculateCategoryScore(
-  profile1: Profile,
-  profile2: Profile,
-  categoryKey: keyof typeof RATING_CATEGORIES
-): CategoryScore {
-  const categoryRatings = RATING_CATEGORIES[categoryKey];
-  let totalScore = 0;
-  let totalFactors = 0;
-
-  // Calculate scores for each rating type in the category
-  Object.entries(categoryRatings).forEach(([ratingType, ratingKeys]) => {
-    const typeScore = calculateCategoryRatingScore(
-      profile1,
-      profile2,
-      ratingType as RatingType,
-      ratingKeys
-    );
-    totalScore += typeScore;
-    totalFactors++;
-  });
-
-  // Get the weight for this category
-  const weightKey = categoryKey.toUpperCase() as keyof typeof CATEGORY_WEIGHTS;
-  const weight = CATEGORY_WEIGHTS[weightKey];
+  // Get detailed explanations
+  const astrologicalDetails = getAstrologicalCompatibilityDetails(sign1, sign2);
+  const aspectDetails = getAspectDetails(astrological.aspect.aspectDetails);
+  const elementDetails = `Element compatibility between ${sign1} and ${sign2}: ${astrological.element.elementScore}%`;
 
   return {
-    score: totalFactors > 0 ? totalScore / totalFactors : 0,
-    weight
+    score: {
+      total,
+      questionnaire,
+      astrological
+    },
+    astrologicalDetails,
+    aspectDetails,
+    elementDetails
   };
-}
-
-// Calculate questionnaire compatibility (50% of total score)
-export function calculateQuestionnaireCompatibility(
-  profile1: Profile,
-  profile2: Profile
-): QuestionnaireCompatibility {
-  // Calculate scores for each category
-  const coreValues = calculateCategoryScore(profile1, profile2, 'coreValues');
-  const relationshipApproach = calculateCategoryScore(profile1, profile2, 'relationshipApproach');
-  const communicationConflict = calculateCategoryScore(profile1, profile2, 'communicationConflict');
-  const emotionalSocial = calculateCategoryScore(profile1, profile2, 'emotionalSocial');
-  const personalCharacteristics = calculateCategoryScore(profile1, profile2, 'personalCharacteristics');
-
-  // Calculate total weighted score (out of 50)
-  const total = Object.values({
-    coreValues,
-    relationshipApproach,
-    communicationConflict,
-    emotionalSocial,
-    personalCharacteristics
-  }).reduce((sum, category) => {
-    return sum + (category.score * category.weight * 50);
-  }, 0);
-
-  return {
-    coreValues,
-    relationshipApproach,
-    communicationConflict,
-    emotionalSocial,
-    personalCharacteristics,
-    total
-  };
-}
-
-// Calculate and update match scores
-export async function updateMatchScores(
-  match: { id: string; user1_id: string; user2_id: string },
-  profile1: Profile,
-  profile2: Profile
-): Promise<{ 
-  compatibility_score: number;
-  questionnaire_score: number;
-  astrological_score: number;
-}> {
-  // Calculate questionnaire compatibility (50% of total)
-  const questionnaireResult = calculateQuestionnaireCompatibility(profile1, profile2);
-  const questionnaireScore = questionnaireResult.total / 50; // Convert to 0-1 scale
-
-  // For now, we'll use a placeholder for astrological score
-  // This will be replaced with actual calculation later
-  const astrologicalScore = 0.5; // Placeholder 50% score
-
-  // Calculate total compatibility score
-  // Currently: 50% questionnaire + 50% astrological (placeholder)
-  const compatibilityScore = (questionnaireScore * 0.5) + (astrologicalScore * 0.5);
-
-  return {
-    compatibility_score: compatibilityScore,
-    questionnaire_score: questionnaireScore,
-    astrological_score: astrologicalScore
-  };
-}
+};

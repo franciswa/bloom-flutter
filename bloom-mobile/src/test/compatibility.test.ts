@@ -1,158 +1,132 @@
-import { Profile } from '../types/database';
-import { calculateQuestionnaireCompatibility, updateMatchScores } from '../services/compatibility';
+import { calculateCompatibility } from '../services/compatibility';
+import { BirthData, ZodiacSign } from '../types/compatibility';
 
-describe('Compatibility Calculation', () => {
-  const mockProfile1: Profile = {
-    id: '1',
-    email: 'test1@example.com',
-    birth_date: null,
-    location_city: null,
-    personality_ratings: {
-      communication_style: 4,
-      emotional_intelligence: 5,
-      creativity: 3,
-      organization: 4,
-      adaptability: 5,
-      stress_management: 4,
-      growth_mindset: 5,
-      ambition: 4,
-      decisiveness: 3,
-      independence: 4,
-      empathy: 5,
-      social_awareness: 4,
-      emotional_stability: 4
-    },
-    lifestyle_ratings: {
-      nature_vs_city: 4,
-      academic_success: 5,
-      workout: 4,
-      social_life: 3,
-      routine: 4,
-      spontaneity: 3
-    },
-    values_ratings: {
-      humor: 5,
-      spirituality: 3,
-      family: 4,
-      commitment: 5,
-      relationship_roles: 4,
-      boundaries: 5,
-      honesty: 5,
-      respect: 5,
-      trust: 5,
-      loyalty: 5
-    },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+// Helper function to create test birth data for a specific date
+function createTestBirthData(year: number, month: number, day: number): BirthData {
+  return {
+    date: new Date(year, month - 1, day), // month is 0-based
+    time: "12:00",
+    latitude: 40.7128, // New York City coordinates
+    longitude: -74.0060,
+    timezone: "America/New_York"
   };
+}
 
-  const mockProfile2: Profile = {
-    id: '2',
-    email: 'test2@example.com',
-    birth_date: null,
-    location_city: null,
-    personality_ratings: {
-      communication_style: 5,
-      emotional_intelligence: 4,
-      creativity: 4,
-      organization: 3,
-      adaptability: 5,
-      stress_management: 4,
-      growth_mindset: 5,
-      ambition: 5,
-      decisiveness: 4,
-      independence: 3,
-      empathy: 5,
-      social_awareness: 5,
-      emotional_stability: 4
-    },
-    lifestyle_ratings: {
-      nature_vs_city: 3,
-      academic_success: 5,
-      workout: 5,
-      social_life: 4,
-      routine: 3,
-      spontaneity: 4
-    },
-    values_ratings: {
-      humor: 4,
-      spirituality: 4,
-      family: 5,
-      commitment: 5,
-      relationship_roles: 4,
-      boundaries: 4,
-      honesty: 5,
-      respect: 5,
-      trust: 5,
-      loyalty: 5
-    },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
+// Test birth data for each zodiac sign
+const testBirthData = {
+  Aries: createTestBirthData(1990, 3, 25),      // March 25
+  Taurus: createTestBirthData(1990, 4, 25),     // April 25
+  Gemini: createTestBirthData(1990, 5, 25),     // May 25
+  Cancer: createTestBirthData(1990, 6, 25),     // June 25
+  Leo: createTestBirthData(1990, 7, 25),        // July 25
+  Virgo: createTestBirthData(1990, 8, 25),      // August 25
+  Libra: createTestBirthData(1990, 9, 25),      // September 25
+  Scorpio: createTestBirthData(1990, 10, 25),   // October 25
+  Sagittarius: createTestBirthData(1990, 11, 25),// November 25
+  Capricorn: createTestBirthData(1990, 12, 25), // December 25
+  Aquarius: createTestBirthData(1990, 1, 25),   // January 25
+  Pisces: createTestBirthData(1990, 2, 25)      // February 25
+};
 
-  describe('calculateQuestionnaireCompatibility', () => {
-    it('calculates category scores correctly', () => {
-      const result = calculateQuestionnaireCompatibility(mockProfile1, mockProfile2);
-
-      // All scores should be between 0 and 1
-      expect(result.coreValues.score).toBeGreaterThanOrEqual(0);
-      expect(result.coreValues.score).toBeLessThanOrEqual(1);
-      expect(result.relationshipApproach.score).toBeGreaterThanOrEqual(0);
-      expect(result.relationshipApproach.score).toBeLessThanOrEqual(1);
-      expect(result.communicationConflict.score).toBeGreaterThanOrEqual(0);
-      expect(result.communicationConflict.score).toBeLessThanOrEqual(1);
-      expect(result.emotionalSocial.score).toBeGreaterThanOrEqual(0);
-      expect(result.emotionalSocial.score).toBeLessThanOrEqual(1);
-      expect(result.personalCharacteristics.score).toBeGreaterThanOrEqual(0);
-      expect(result.personalCharacteristics.score).toBeLessThanOrEqual(1);
-
-      // Total should be between 0 and 50
-      expect(result.total).toBeGreaterThanOrEqual(0);
-      expect(result.total).toBeLessThanOrEqual(50);
+describe('Compatibility Calculations', () => {
+  describe('calculateCompatibility', () => {
+    it('should calculate total compatibility with questionnaire score', () => {
+      const result = calculateCompatibility(testBirthData.Aries, testBirthData.Leo, 80);
+      expect(result.score.total).toBeDefined();
+      expect(result.score.questionnaire).toBe(80);
+      expect(result.score.astrological.total).toBeDefined();
     });
 
-    it('handles similar profiles with high compatibility', () => {
-      const result = calculateQuestionnaireCompatibility(mockProfile1, mockProfile1);
-      expect(result.total).toBeGreaterThanOrEqual(45); // Should be very high for identical profiles
+    it('should default to middle questionnaire score if not provided', () => {
+      const result = calculateCompatibility(testBirthData.Aries, testBirthData.Leo);
+      expect(result.score.questionnaire).toBe(50);
     });
 
-    it('handles missing ratings gracefully', () => {
-      const incompleteProfile: Profile = {
-        ...mockProfile1,
-        personality_ratings: {},
-        lifestyle_ratings: {},
-        values_ratings: {}
-      };
-
-      const result = calculateQuestionnaireCompatibility(incompleteProfile, mockProfile2);
-      expect(result.total).toBe(0); // Should handle missing data without errors
+    it('should calculate high compatibility for matching elements', () => {
+      const result = calculateCompatibility(testBirthData.Aries, testBirthData.Leo);
+      expect(result.score.astrological.element.elementScore).toBeGreaterThan(80);
+      expect(result.astrologicalDetails).toContain('naturally harmonious match');
     });
-  });
 
-  describe('updateMatchScores', () => {
-    it('calculates all scores correctly', async () => {
-      const mockMatch = {
-        id: '1',
-        user1_id: '1',
-        user2_id: '2'
-      };
+    it('should calculate lower compatibility for challenging elements', () => {
+      const result = calculateCompatibility(testBirthData.Aries, testBirthData.Cancer);
+      expect(result.score.astrological.element.elementScore).toBeLessThan(60);
+      expect(result.astrologicalDetails).toContain('natural challenges');
+    });
 
-      const result = await updateMatchScores(mockMatch, mockProfile1, mockProfile2);
+    it('should provide detailed compatibility explanations', () => {
+      const result = calculateCompatibility(testBirthData.Taurus, testBirthData.Cancer);
+      expect(result.astrologicalDetails).toBeTruthy();
+      expect(result.astrologicalDetails).toContain('Earth and Water');
+      expect(result.aspectDetails).toBeTruthy();
+      expect(result.elementDetails).toBeTruthy();
+    });
 
-      // All scores should be between 0 and 1
-      expect(result.compatibility_score).toBeGreaterThanOrEqual(0);
-      expect(result.compatibility_score).toBeLessThanOrEqual(1);
-      expect(result.questionnaire_score).toBeGreaterThanOrEqual(0);
-      expect(result.questionnaire_score).toBeLessThanOrEqual(1);
-      expect(result.astrological_score).toBeGreaterThanOrEqual(0);
-      expect(result.astrological_score).toBeLessThanOrEqual(1);
+    it('should handle same sign compatibility', () => {
+      const signs = Object.keys(testBirthData) as ZodiacSign[];
 
-      // Verify questionnaire score is 50% of total
-      const expectedQuestionnaireContribution = result.questionnaire_score * 0.5;
-      const expectedAstrologicalContribution = result.astrological_score * 0.5;
-      expect(result.compatibility_score).toBeCloseTo(
-        expectedQuestionnaireContribution + expectedAstrologicalContribution
-      );
+      signs.forEach(sign => {
+        const result = calculateCompatibility(testBirthData[sign], testBirthData[sign]);
+        expect(result.score.total).toBeGreaterThanOrEqual(0);
+        expect(result.score.total).toBeLessThanOrEqual(100);
+        expect(result.astrologicalDetails).toContain(sign);
+      });
+    });
+
+    it('should calculate symmetric compatibility scores', () => {
+      const result1 = calculateCompatibility(testBirthData.Libra, testBirthData.Aquarius);
+      const result2 = calculateCompatibility(testBirthData.Aquarius, testBirthData.Libra);
+      expect(result1.score.total).toBe(result2.score.total);
+      expect(result1.score.astrological.total).toBe(result2.score.astrological.total);
+      expect(result1.score.astrological.aspect.total).toBe(result2.score.astrological.aspect.total);
+      expect(result1.score.astrological.element.elementScore).toBe(result2.score.astrological.element.elementScore);
+    });
+
+    describe('Birth Time and Location Effects', () => {
+      it('should handle different birth times', () => {
+        const morningBirth: BirthData = {
+          ...testBirthData.Leo,
+          time: "06:00"
+        };
+        const eveningBirth: BirthData = {
+          ...testBirthData.Leo,
+          time: "18:00"
+        };
+        
+        const result = calculateCompatibility(morningBirth, eveningBirth);
+        expect(result.score.total).toBeDefined();
+        expect(result.score.astrological.aspect.aspectDetails).toBeDefined();
+      });
+
+      it('should handle different locations', () => {
+        const newYorkBirth: BirthData = testBirthData.Leo;
+        const tokyoBirth: BirthData = {
+          ...testBirthData.Leo,
+          latitude: 35.6762,
+          longitude: 139.6503,
+          timezone: "Asia/Tokyo"
+        };
+        
+        const result = calculateCompatibility(newYorkBirth, tokyoBirth);
+        expect(result.score.total).toBeDefined();
+        expect(result.score.astrological.aspect.aspectDetails).toBeDefined();
+      });
+    });
+
+    describe('Aspect Compatibility', () => {
+      it('should calculate aspect compatibility with birth data', () => {
+        const result = calculateCompatibility(testBirthData.Leo, testBirthData.Libra);
+        expect(result.score.astrological.aspect.total).toBeDefined();
+        expect(result.score.astrological.aspect.aspectScore).toBeDefined();
+        expect(result.score.astrological.aspect.elementScore).toBeDefined();
+        expect(result.score.astrological.aspect.aspectDetails.length).toBeGreaterThan(0);
+      });
+
+      it('should provide aspect details', () => {
+        const result = calculateCompatibility(testBirthData.Leo, testBirthData.Libra);
+        expect(result.aspectDetails).toContain('Planetary Aspects');
+        expect(result.aspectDetails).toMatch(/\d+% strength/);
+      });
     });
   });
 });
