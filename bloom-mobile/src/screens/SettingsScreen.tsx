@@ -1,27 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   YStack,
   XStack,
   Text,
   H1,
-  H4,
   Switch,
-  Separator,
-  Button,
-  ScrollView,
   Slider,
+  Button,
+  Form,
   styled,
 } from 'tamagui';
-import { useSettings } from '../hooks/useSettings';
-import { ThemeMode } from '../types/database';
+import { Alert } from 'react-native';
+import { useAuth } from '../hooks/useAuth';
+import { UserSettings } from '../types/database';
 
-const MainContainer = styled(ScrollView, {
+const Container = styled(YStack, {
   flex: 1,
   backgroundColor: '$background',
+  padding: '$4',
 });
 
 const Header = styled(YStack, {
-  paddingHorizontal: '$4',
   paddingVertical: '$5',
 });
 
@@ -31,320 +30,274 @@ const HeaderTitle = styled(H1, {
 });
 
 const Section = styled(YStack, {
-  padding: '$4',
+  marginTop: '$4',
+  space: '$4',
 });
 
-const SectionTitle = styled(H4, {
+const SectionTitle = styled(Text, {
+  fontSize: '$5',
+  fontWeight: 'bold',
   color: '$text',
-  marginBottom: '$4',
-  fontFamily: '$heading',
+  marginBottom: '$2',
 });
 
-const Setting = styled(YStack, {
-  marginBottom: '$4',
+const SettingRow = styled(XStack, {
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingVertical: '$2',
 });
 
 const SettingLabel = styled(Text, {
   fontSize: '$4',
-  marginBottom: '$2',
   color: '$text',
-  fontFamily: '$body',
-});
-
-const ThemeButtons = styled(XStack, {
-  gap: '$2',
-  marginTop: '$2',
-});
-
-const ThemeButton = styled(Button, {
-  flex: 1,
-  backgroundColor: '$backgroundHover',
-  
-  variants: {
-    selected: {
-      true: {
-        backgroundColor: '$primary',
-      },
-    },
-  },
-  pressStyle: {
-    opacity: 0.8,
-  },
-});
-
-const ThemeButtonText = styled(Text, {
-  color: '$text',
-  fontSize: '$3',
-  fontFamily: '$body',
-  
-  variants: {
-    selected: {
-      true: {
-        color: 'white',
-      },
-    },
-  },
 });
 
 const SliderContainer = styled(YStack, {
-  gap: '$4',
+  width: '100%',
+  marginTop: '$2',
 });
 
-const LoadingContainer = styled(YStack, {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: '$background',
-});
-
-const LoadingText = styled(Text, {
-  fontSize: '$4',
-  color: '$text',
-  fontFamily: '$body',
-});
-
-const ErrorText = styled(Text, {
-  fontSize: '$4',
-  color: '$red10',
-  textAlign: 'center',
-  fontFamily: '$body',
+const SliderValue = styled(Text, {
+  fontSize: '$3',
+  color: '$gray11',
+  textAlign: 'right',
+  marginTop: '$1',
 });
 
 export default function SettingsScreen() {
-  const { settings, loading, error, updateSettings, updateThemeMode } = useSettings();
+  const { profile, signOut } = useAuth();
+  const [settings, setSettings] = useState<UserSettings>({
+    id: '1',
+    user_id: profile?.id || '',
+    theme_mode: 'light',
+    dark_mode: false,
+    notifications_enabled: true,
+    notification_preferences: {
+      matches: true,
+      messages: true,
+      date_reminders: true,
+    },
+    distance_range: 50,
+    age_range_min: 18,
+    age_range_max: 45,
+    show_zodiac: true,
+    show_birth_time: true,
+    privacy_settings: {
+      show_location: true,
+      show_age: true,
+      show_profile_photo: true,
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
 
-  if (loading) {
-    return (
-      <LoadingContainer>
-        <LoadingText>Loading...</LoadingText>
-      </LoadingContainer>
-    );
-  }
-
-  if (error || !settings) {
-    return (
-      <LoadingContainer>
-        <ErrorText>{error || 'Failed to load settings'}</ErrorText>
-      </LoadingContainer>
-    );
-  }
-
-  const themeModes: ThemeMode[] = ['light', 'dark', 'system'];
+  const handleSave = async () => {
+    try {
+      // TODO: Save settings to database
+      // await supabase
+      //   .from('user_settings')
+      //   .upsert(settings)
+      //   .eq('user_id', profile?.id);
+      
+      Alert.alert('Success', 'Settings saved successfully');
+    } catch (err) {
+      Alert.alert('Error', 'Failed to save settings');
+    }
+  };
 
   return (
-    <MainContainer>
+    <Container>
       <Header>
         <HeaderTitle>Settings</HeaderTitle>
       </Header>
 
-      <Section>
-        <SectionTitle>Notifications</SectionTitle>
-        <Setting>
-          <XStack justifyContent="space-between" alignItems="center">
+      <Form space="$4">
+        <Section>
+          <SectionTitle>Notifications</SectionTitle>
+          <SettingRow>
             <SettingLabel>Enable Notifications</SettingLabel>
             <Switch
               checked={settings.notifications_enabled}
-              onCheckedChange={(value) => updateSettings({ notifications_enabled: value })}
+              onCheckedChange={(checked) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  notifications_enabled: checked,
+                }))
+              }
             />
-          </XStack>
-        </Setting>
-        
-        {settings.notifications_enabled && (
-          <>
-            <Setting>
-              <XStack justifyContent="space-between" alignItems="center">
+          </SettingRow>
+          {settings.notifications_enabled && (
+            <>
+              <SettingRow>
                 <SettingLabel>Match Notifications</SettingLabel>
                 <Switch
                   checked={settings.notification_preferences.matches}
-                  onCheckedChange={(value) => updateSettings({
-                    notification_preferences: {
-                      ...settings.notification_preferences,
-                      matches: value,
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      notification_preferences: {
+                        ...prev.notification_preferences,
+                        matches: checked,
+                      },
+                    }))
+                  }
                 />
-              </XStack>
-            </Setting>
-            <Setting>
-              <XStack justifyContent="space-between" alignItems="center">
+              </SettingRow>
+              <SettingRow>
                 <SettingLabel>Message Notifications</SettingLabel>
                 <Switch
                   checked={settings.notification_preferences.messages}
-                  onCheckedChange={(value) => updateSettings({
-                    notification_preferences: {
-                      ...settings.notification_preferences,
-                      messages: value,
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      notification_preferences: {
+                        ...prev.notification_preferences,
+                        messages: checked,
+                      },
+                    }))
+                  }
                 />
-              </XStack>
-            </Setting>
-            <Setting>
-              <XStack justifyContent="space-between" alignItems="center">
+              </SettingRow>
+              <SettingRow>
                 <SettingLabel>Date Reminders</SettingLabel>
                 <Switch
                   checked={settings.notification_preferences.date_reminders}
-                  onCheckedChange={(value) => updateSettings({
-                    notification_preferences: {
-                      ...settings.notification_preferences,
-                      date_reminders: value,
-                    }
-                  })}
+                  onCheckedChange={(checked) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      notification_preferences: {
+                        ...prev.notification_preferences,
+                        date_reminders: checked,
+                      },
+                    }))
+                  }
                 />
-              </XStack>
-            </Setting>
-          </>
-        )}
-      </Section>
+              </SettingRow>
+            </>
+          )}
+        </Section>
 
-      <Separator />
-
-      <Section>
-        <SectionTitle>Appearance</SectionTitle>
-        <Setting>
-          <SettingLabel>Theme Mode</SettingLabel>
-          <ThemeButtons>
-            {themeModes.map((mode) => (
-              <ThemeButton
-                key={mode}
-                selected={settings.theme_mode === mode}
-                onPress={() => updateThemeMode(mode)}
-              >
-                <ThemeButtonText selected={settings.theme_mode === mode}>
-                  {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                </ThemeButtonText>
-              </ThemeButton>
-            ))}
-          </ThemeButtons>
-        </Setting>
-      </Section>
-
-      <Separator />
-
-      <Section>
-        <SectionTitle>Discovery</SectionTitle>
-        <SliderContainer>
-          <Setting>
-            <SettingLabel>Maximum Distance ({settings.distance_range} miles)</SettingLabel>
+        <Section>
+          <SectionTitle>Discovery</SectionTitle>
+          <SliderContainer>
+            <SettingLabel>Maximum Distance (km)</SettingLabel>
             <Slider
-              defaultValue={[settings.distance_range]}
-              min={5}
+              value={[settings.distance_range]}
+              onValueChange={([value]) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  distance_range: value,
+                }))
+              }
+              width="100%"
+              min={1}
               max={100}
-              step={5}
-              onValueChange={([value]) => updateSettings({ distance_range: value })}
-            >
-              <Slider.Track>
-                <Slider.TrackActive />
-              </Slider.Track>
-              <Slider.Thumb circular index={0} />
-            </Slider>
-          </Setting>
-
-          <Setting>
-            <SettingLabel>Age Range ({settings.age_range_min} - {settings.age_range_max})</SettingLabel>
-            <YStack space="$4">
-              <Slider
-                defaultValue={[settings.age_range_min]}
-                min={18}
-                max={99}
-                step={1}
-                onValueChange={([value]) => {
-                  if (value <= settings.age_range_max) {
-                    updateSettings({ age_range_min: value });
-                  }
-                }}
-              >
-                <Slider.Track>
-                  <Slider.TrackActive />
-                </Slider.Track>
-                <Slider.Thumb circular index={0} />
-              </Slider>
-              <Slider
-                defaultValue={[settings.age_range_max]}
-                min={18}
-                max={99}
-                step={1}
-                onValueChange={([value]) => {
-                  if (value >= settings.age_range_min) {
-                    updateSettings({ age_range_max: value });
-                  }
-                }}
-              >
-                <Slider.Track>
-                  <Slider.TrackActive />
-                </Slider.Track>
-                <Slider.Thumb circular index={0} />
-              </Slider>
-            </YStack>
-          </Setting>
-        </SliderContainer>
-      </Section>
-
-      <Separator />
-
-      <Section>
-        <SectionTitle>Privacy</SectionTitle>
-        <Setting>
-          <XStack justifyContent="space-between" alignItems="center">
-            <SettingLabel>Show Zodiac Sign</SettingLabel>
-            <Switch
-              checked={settings.show_zodiac}
-              onCheckedChange={(value) => updateSettings({ show_zodiac: value })}
+              step={1}
             />
-          </XStack>
-        </Setting>
-        <Setting>
-          <XStack justifyContent="space-between" alignItems="center">
-            <SettingLabel>Show Birth Time</SettingLabel>
-            <Switch
-              checked={settings.show_birth_time}
-              onCheckedChange={(value) => updateSettings({ show_birth_time: value })}
-            />
-          </XStack>
-        </Setting>
-        <Setting>
-          <XStack justifyContent="space-between" alignItems="center">
+            <SliderValue>{settings.distance_range} km</SliderValue>
+          </SliderContainer>
+
+          <SliderContainer>
+            <SettingLabel>Age Range</SettingLabel>
+            <XStack space="$4">
+              <Slider
+                value={[settings.age_range_min]}
+                onValueChange={([value]) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    age_range_min: value,
+                  }))
+                }
+                width="45%"
+                min={18}
+                max={100}
+                step={1}
+              />
+              <Slider
+                value={[settings.age_range_max]}
+                onValueChange={([value]) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    age_range_max: value,
+                  }))
+                }
+                width="45%"
+                min={18}
+                max={100}
+                step={1}
+              />
+            </XStack>
+            <SliderValue>
+              {settings.age_range_min} - {settings.age_range_max} years
+            </SliderValue>
+          </SliderContainer>
+        </Section>
+
+        <Section>
+          <SectionTitle>Privacy</SectionTitle>
+          <SettingRow>
             <SettingLabel>Show Location</SettingLabel>
             <Switch
               checked={settings.privacy_settings.show_location}
-              onCheckedChange={(value) => updateSettings({
-                privacy_settings: {
-                  ...settings.privacy_settings,
-                  show_location: value,
-                }
-              })}
+              onCheckedChange={(checked) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  privacy_settings: {
+                    ...prev.privacy_settings,
+                    show_location: checked,
+                  },
+                }))
+              }
             />
-          </XStack>
-        </Setting>
-        <Setting>
-          <XStack justifyContent="space-between" alignItems="center">
+          </SettingRow>
+          <SettingRow>
             <SettingLabel>Show Age</SettingLabel>
             <Switch
               checked={settings.privacy_settings.show_age}
-              onCheckedChange={(value) => updateSettings({
-                privacy_settings: {
-                  ...settings.privacy_settings,
-                  show_age: value,
-                }
-              })}
+              onCheckedChange={(checked) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  privacy_settings: {
+                    ...prev.privacy_settings,
+                    show_age: checked,
+                  },
+                }))
+              }
             />
-          </XStack>
-        </Setting>
-        <Setting>
-          <XStack justifyContent="space-between" alignItems="center">
+          </SettingRow>
+          <SettingRow>
             <SettingLabel>Show Profile Photo</SettingLabel>
             <Switch
               checked={settings.privacy_settings.show_profile_photo}
-              onCheckedChange={(value) => updateSettings({
-                privacy_settings: {
-                  ...settings.privacy_settings,
-                  show_profile_photo: value,
-                }
-              })}
+              onCheckedChange={(checked) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  privacy_settings: {
+                    ...prev.privacy_settings,
+                    show_profile_photo: checked,
+                  },
+                }))
+              }
             />
-          </XStack>
-        </Setting>
-      </Section>
-    </MainContainer>
+          </SettingRow>
+        </Section>
+
+        <Button
+          marginTop="$6"
+          onPress={handleSave}
+          backgroundColor="$primary"
+        >
+          Save Settings
+        </Button>
+
+        <Button
+          marginTop="$4"
+          variant="outlined"
+          onPress={signOut}
+        >
+          Sign Out
+        </Button>
+      </Form>
+    </Container>
   );
 }

@@ -1,33 +1,23 @@
 import React from 'react';
-import { Alert, FlatList } from 'react-native';
 import {
   YStack,
-  XStack,
   Text,
   H1,
-  Button,
+  ScrollView,
   Card,
+  Button,
   styled,
-  Stack,
-  ListItem,
 } from 'tamagui';
-import { Ionicons } from '@expo/vector-icons';
+import { RefreshControl } from 'react-native';
 import { useNotifications } from '../hooks/useNotifications';
-import { Notification } from '../types/database';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../types/navigation';
+import { formatDistanceToNow } from 'date-fns';
 
-type NotificationsScreenNavigationProp = NavigationProp<RootStackParamList>;
-
-const MainContainer = styled(YStack, {
+const Container = styled(YStack, {
   flex: 1,
   backgroundColor: '$background',
 });
 
-const Header = styled(XStack, {
-  justifyContent: 'space-between',
-  alignItems: 'center',
+const Header = styled(YStack, {
   paddingHorizontal: '$4',
   paddingVertical: '$5',
 });
@@ -37,221 +27,115 @@ const HeaderTitle = styled(H1, {
   fontFamily: '$heading',
 });
 
-const MarkAllButton = styled(Button, {
-  backgroundColor: 'transparent',
-  color: '$primary',
-});
-
 const NotificationCard = styled(Card, {
-  marginBottom: '$2',
+  marginHorizontal: '$4',
+  marginBottom: '$3',
   padding: '$4',
-  
+  backgroundColor: '$backgroundStrong',
   variants: {
-    read: {
+    unread: {
       true: {
-        backgroundColor: '$backgroundStrong',
-      },
-      false: {
-        backgroundColor: '$backgroundHover',
+        borderLeftColor: '$primary',
+        borderLeftWidth: 4,
       },
     },
   },
-  pressStyle: {
-    opacity: 0.8,
-  },
-});
-
-const NotificationHeader = styled(XStack, {
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '$1',
 });
 
 const NotificationTitle = styled(Text, {
-  fontSize: '$4',
+  fontSize: '$5',
   fontWeight: 'bold',
   color: '$text',
-  flex: 1,
-  fontFamily: '$body',
-});
-
-const NotificationTime = styled(Text, {
-  fontSize: '$2',
-  color: '$gray10',
-  marginLeft: '$2',
-  fontFamily: '$body',
+  marginBottom: '$1',
 });
 
 const NotificationMessage = styled(Text, {
-  fontSize: '$3',
-  lineHeight: 20,
-  color: '$text',
-  fontFamily: '$body',
-});
-
-const DeleteButton = styled(Button, {
-  backgroundColor: 'transparent',
-  padding: '$2',
-  marginLeft: '$2',
-});
-
-const EmptyState = styled(Card, {
-  margin: '$4',
-  padding: '$8',
-  backgroundColor: '$backgroundStrong',
-  alignItems: 'center',
-});
-
-const EmptyText = styled(Text, {
   fontSize: '$4',
-  marginTop: '$4',
-  textAlign: 'center',
-  color: '$text',
-  fontFamily: '$body',
+  color: '$gray11',
+  marginBottom: '$2',
 });
 
-const LoadingContainer = styled(YStack, {
+const NotificationTime = styled(Text, {
+  fontSize: '$3',
+  color: '$gray10',
+});
+
+const EmptyState = styled(YStack, {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor: '$background',
+  padding: '$6',
 });
 
-const LoadingText = styled(Text, {
-  fontSize: '$4',
-  color: '$text',
-  fontFamily: '$body',
-});
-
-const ErrorText = styled(Text, {
-  fontSize: '$4',
-  color: '$red10',
+const EmptyStateText = styled(Text, {
+  fontSize: '$5',
+  color: '$gray11',
   textAlign: 'center',
-  fontFamily: '$body',
+  marginBottom: '$4',
 });
 
 export default function NotificationsScreen() {
-  const navigation = useNavigation<NotificationsScreenNavigationProp>();
   const {
     notifications,
     loading,
     error,
     markAsRead,
-    markAllAsRead,
-    deleteNotification,
+    refreshNotifications,
   } = useNotifications();
 
-  const handleNotificationPress = async (notification: Notification) => {
-    if (!notification.read) {
-      await markAsRead(notification.id);
-    }
-
-    // Navigate based on notification type and data
-    if (notification.data) {
-      switch (notification.type) {
-        case 'match':
-          if (notification.data.match_id) {
-            navigation.navigate('Chat', { matchId: notification.data.match_id });
-          }
-          break;
-        case 'message':
-          if (notification.data.match_id) {
-            navigation.navigate('Chat', { matchId: notification.data.match_id });
-          }
-          break;
-        case 'date_reminder':
-          if (notification.data.date_preference_id) {
-            navigation.navigate('Date');
-          }
-          break;
-      }
-    }
+  const handleNotificationPress = async (notificationId: string) => {
+    await markAsRead(notificationId);
+    // TODO: Navigate to relevant screen based on notification type
   };
-
-  const handleDelete = (notification: Notification) => {
-    Alert.alert(
-      'Delete Notification',
-      'Are you sure you want to delete this notification?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteNotification(notification.id),
-        },
-      ]
-    );
-  };
-
-  const renderNotification = ({ item: notification }: { item: Notification }) => (
-    <NotificationCard
-      read={notification.read}
-      onPress={() => handleNotificationPress(notification)}
-      elevate
-    >
-      <XStack>
-        <YStack flex={1}>
-          <NotificationHeader>
-            <NotificationTitle>{notification.title}</NotificationTitle>
-            <NotificationTime>
-              {new Date(notification.created_at).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </NotificationTime>
-          </NotificationHeader>
-          <NotificationMessage>{notification.message}</NotificationMessage>
-        </YStack>
-        <DeleteButton onPress={() => handleDelete(notification)}>
-          <Ionicons name="trash-outline" size={24} color="$red10" />
-        </DeleteButton>
-      </XStack>
-    </NotificationCard>
-  );
-
-  if (loading) {
-    return (
-      <LoadingContainer>
-        <LoadingText>Loading...</LoadingText>
-      </LoadingContainer>
-    );
-  }
 
   if (error) {
     return (
-      <LoadingContainer>
-        <ErrorText>{error}</ErrorText>
-      </LoadingContainer>
+      <EmptyState>
+        <EmptyStateText>Failed to load notifications</EmptyStateText>
+        <Button onPress={refreshNotifications}>Try Again</Button>
+      </EmptyState>
     );
   }
 
   return (
-    <MainContainer>
+    <Container>
       <Header>
         <HeaderTitle>Notifications</HeaderTitle>
-        {notifications.length > 0 && (
-          <MarkAllButton onPress={markAllAsRead}>
-            Mark All Read
-          </MarkAllButton>
-        )}
       </Header>
 
-      {notifications.length === 0 ? (
-        <EmptyState elevate>
-          <Ionicons name="notifications-outline" size={48} color="$primary" />
-          <EmptyText>
-            No notifications yet
-          </EmptyText>
-        </EmptyState>
-      ) : (
-        <FlatList
-          data={notifications}
-          renderItem={renderNotification}
-          keyExtractor={item => item.id}
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </MainContainer>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refreshNotifications}
+          />
+        }
+      >
+        {notifications.length === 0 ? (
+          <EmptyState>
+            <EmptyStateText>
+              You don't have any notifications yet
+            </EmptyStateText>
+          </EmptyState>
+        ) : (
+          notifications.map((notification) => (
+            <NotificationCard
+              key={notification.id}
+              unread={!notification.read}
+              pressStyle={{ scale: 0.98 }}
+              onPress={() => handleNotificationPress(notification.id)}
+            >
+              <NotificationTitle>{notification.title}</NotificationTitle>
+              <NotificationMessage>{notification.message}</NotificationMessage>
+              <NotificationTime>
+                {formatDistanceToNow(new Date(notification.created_at), {
+                  addSuffix: true,
+                })}
+              </NotificationTime>
+            </NotificationCard>
+          ))
+        )}
+      </ScrollView>
+    </Container>
   );
 }

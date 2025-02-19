@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   YStack,
   XStack,
@@ -11,12 +11,18 @@ import {
   Card,
   styled,
   Avatar,
+  Input as TextInput,
 } from 'tamagui';
 import { Ionicons } from '@expo/vector-icons';
+import { useProfile } from '../hooks/useProfile';
 import NatalChart from '../components/NatalChart';
+import { Alert } from 'react-native';
 
-// Sample natal chart data (we'll replace this with real data later)
-const sampleNatalData = {
+// Temporary user ID until we have auth
+const TEMP_USER_ID = '1';
+
+// Default natal chart data when none exists
+const defaultNatalData = {
   signs: {
     sun: 'Leo',
     moon: 'Aries',
@@ -115,7 +121,76 @@ const AnswerText = styled(Text, {
   fontFamily: '$body',
 });
 
+const BirthInfoForm = styled(YStack, {
+  space: '$4',
+  padding: '$4',
+  backgroundColor: '$backgroundStrong',
+  borderRadius: '$4',
+});
+
+const Input = styled(TextInput, {
+  backgroundColor: '$background',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  borderRadius: '$2',
+  padding: '$2',
+  color: '$text',
+});
+
 export default function ProfileScreen() {
+  const {
+    profile,
+    loading,
+    error,
+    uploadPhoto,
+    updateNatalChart,
+    updateQuestionnaireData
+  } = useProfile(TEMP_USER_ID);
+
+  const [showBirthForm, setShowBirthForm] = useState(false);
+  const [birthDate, setBirthDate] = useState('');
+  const [birthTime, setBirthTime] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+
+  const handlePhotoUpload = async () => {
+    try {
+      await uploadPhoto();
+    } catch (err) {
+      Alert.alert('Error', 'Failed to upload photo');
+    }
+  };
+
+  const handleBirthInfoSubmit = async () => {
+    try {
+      await updateNatalChart({
+        date: birthDate,
+        time: birthTime,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude)
+      });
+      setShowBirthForm(false);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update birth information');
+    }
+  };
+
+  if (loading) {
+    return (
+      <YStack flex={1} justifyContent="center" alignItems="center">
+        <Text>Loading...</Text>
+      </YStack>
+    );
+  }
+
+  if (error) {
+    return (
+      <YStack flex={1} justifyContent="center" alignItems="center">
+        <Text color="$red10">{error}</Text>
+      </YStack>
+    );
+  }
+
   return (
     <MainContainer>
       <Header>
@@ -127,26 +202,71 @@ export default function ProfileScreen() {
         <Section>
           <SectionTitle>Photos</SectionTitle>
           <PhotosContainer>
-            <Avatar
-              circular
-              size="$10"
-              backgroundColor="$backgroundHover"
-            >
-              <Avatar.Image source={{ uri: undefined }} />
-              <Avatar.Fallback backgroundColor="$backgroundHover">
-                <Ionicons name="person" size={40} color="$color" />
-              </Avatar.Fallback>
-            </Avatar>
-            <AddPhotoButton>
-              <Ionicons name="add" size={30} color="$primary" />
-            </AddPhotoButton>
+            {profile?.photos.map((photo) => (
+              <Avatar
+                key={photo.id}
+                circular
+                size="$10"
+                backgroundColor="$backgroundHover"
+              >
+                <Avatar.Image source={{ uri: photo.url }} />
+                <Avatar.Fallback backgroundColor="$backgroundHover">
+                  <Ionicons name="person" size={40} color="$color" />
+                </Avatar.Fallback>
+              </Avatar>
+            ))}
+            {(!profile?.photos || profile.photos.length < 6) && (
+              <AddPhotoButton onPress={handlePhotoUpload}>
+                <Ionicons name="add" size={30} color="$primary" />
+              </AddPhotoButton>
+            )}
           </PhotosContainer>
         </Section>
 
         {/* Natal Chart Section */}
         <Section>
-          <SectionTitle>Natal Chart</SectionTitle>
-          <NatalChart data={sampleNatalData} />
+          <XStack justifyContent="space-between" alignItems="center">
+            <SectionTitle>Natal Chart</SectionTitle>
+            <Button
+              size="$3"
+              variant="outlined"
+              onPress={() => setShowBirthForm(!showBirthForm)}
+            >
+              {showBirthForm ? 'Cancel' : 'Update'}
+            </Button>
+          </XStack>
+          
+          {showBirthForm ? (
+            <BirthInfoForm>
+              <Input
+                placeholder="Birth Date (YYYY-MM-DD)"
+                value={birthDate}
+                onChangeText={setBirthDate}
+              />
+              <Input
+                placeholder="Birth Time (HH:mm)"
+                value={birthTime}
+                onChangeText={setBirthTime}
+              />
+              <Input
+                placeholder="Latitude"
+                value={latitude}
+                onChangeText={setLatitude}
+                keyboardType="numeric"
+              />
+              <Input
+                placeholder="Longitude"
+                value={longitude}
+                onChangeText={setLongitude}
+                keyboardType="numeric"
+              />
+              <Button onPress={handleBirthInfoSubmit}>
+                Save Birth Information
+              </Button>
+            </BirthInfoForm>
+          ) : (
+            <NatalChart data={profile?.natal_chart || defaultNatalData} />
+          )}
         </Section>
 
         {/* Questionnaire Section */}
@@ -155,15 +275,27 @@ export default function ProfileScreen() {
           <QuestionnaireCard elevate>
             <AnswerGroup>
               <QuestionText>Personality Type</QuestionText>
-              <AnswerText>Adventurous, Creative, Analytical</AnswerText>
+              <AnswerText>
+                {Object.entries(profile?.personality_ratings || {})
+                  .map(([key, value]) => `${key.replace('_', ' ')}: ${value}`)
+                  .join(', ')}
+              </AnswerText>
             </AnswerGroup>
             <AnswerGroup>
               <QuestionText>Lifestyle</QuestionText>
-              <AnswerText>City Person, Fitness Enthusiast</AnswerText>
+              <AnswerText>
+                {Object.entries(profile?.lifestyle_ratings || {})
+                  .map(([key, value]) => `${key.replace('_', ' ')}: ${value}`)
+                  .join(', ')}
+              </AnswerText>
             </AnswerGroup>
             <AnswerGroup>
               <QuestionText>Values</QuestionText>
-              <AnswerText>Growth, Authenticity, Balance</AnswerText>
+              <AnswerText>
+                {Object.entries(profile?.values_ratings || {})
+                  .map(([key, value]) => `${key.replace('_', ' ')}: ${value}`)
+                  .join(', ')}
+              </AnswerText>
             </AnswerGroup>
           </QuestionnaireCard>
         </Section>

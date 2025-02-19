@@ -10,10 +10,37 @@ export interface Profile {
   id: string;
   email: string;
   birth_date: string | null;
+  birth_time: string | null;
+  birth_location: {
+    city: string;
+    latitude: number;
+    longitude: number;
+  } | null;
   location_city: string | null;
   personality_ratings: Record<string, number>;
   lifestyle_ratings: Record<string, number>;
   values_ratings: Record<string, number>;
+  natal_chart: {
+    signs: Record<string, string>;
+    planets: Record<string, {
+      planet: string;
+      house: number;
+      degree: number;
+      retrograde: boolean;
+    }>;
+    aspects: Array<{
+      planet1: string;
+      planet2: string;
+      aspect: string;
+      orb: number;
+    }>;
+  } | null;
+  photos: Array<{
+    id: string;
+    url: string;
+    is_primary: boolean;
+    uploaded_at: string;
+  }>;
   created_at: string;
   updated_at: string;
 }

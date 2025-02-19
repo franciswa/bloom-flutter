@@ -1,19 +1,36 @@
-module.exports = function(api) {
+module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
     plugins: [
       [
-        'module-resolver',
+        '@babel/plugin-proposal-class-properties',
         {
-          root: ['./src'],
-          extensions: ['.ios.js', '.android.js', '.js', '.ts', '.tsx', '.json'],
-          alias: {
-            '@': './src',
-          },
+          loose: true,
         },
       ],
-      'react-native-reanimated/plugin'
-    ]
+      [
+        '@babel/plugin-proposal-private-methods',
+        {
+          loose: true,
+        },
+      ],
+      [
+        'transform-inline-environment-variables',
+        {
+          include: ['TAMAGUI_TARGET', 'EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPABASE_ANON_KEY'],
+        },
+      ],
+      [
+        '@tamagui/babel-plugin',
+        {
+          components: ['tamagui'],
+          config: './tamagui.config.ts',
+          logTimings: true,
+          disableExtraction: process.env.NODE_ENV === 'development',
+        },
+      ],
+      'react-native-reanimated/plugin',
+    ],
   };
 };

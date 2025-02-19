@@ -1,221 +1,132 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { getDeviceId } from '../utils/deviceId';
-import { supabase } from '../lib/supabaseClient';
-import { Notification, PushToken } from '../types/database';
-import { AppError, ErrorCodes, withErrorHandling } from '../utils/errorHandling';
+import { useAuth } from './useAuth';
+import {
+  registerForPushNotifications,
+  savePushToken,
+  getNotifications,
+  markNotificationAsRead,
+  subscribeToMatchNotifications,
+  subscribeToMessageNotifications,
+  subscribeToDateReminders,
+} from '../services/notifications';
+import type { Notification } from '../types/database';
 
-export interface UseNotificationsResult {
+interface UseNotificationsResult {
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
   error: string | null;
   markAsRead: (notificationId: string) => Promise<void>;
-  markAllAsRead: () => Promise<void>;
-  deleteNotification: (notificationId: string) => Promise<void>;
-  requestPermissions: () => Promise<boolean>;
+  refreshNotifications: () => Promise<void>;
 }
 
 export function useNotifications(): UseNotificationsResult {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchNotifications = useCallback(
-    withErrorHandling(async () => {
-      const { user } = await supabase.auth.getUser();
-      if (!user) throw new AppError('No user found', ErrorCodes.AUTHENTICATION);
+  // Load notifications
+  const loadNotifications = useCallback(async () => {
+    if (!user) return;
 
-      const data = await supabase.select<'notifications'>(
-        'notifications',
-        '*',
-        'Notifications.Fetch'
-      );
-
+    try {
+      setLoading(true);
+      const data = await getNotifications(user.id);
       setNotifications(data);
-      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load notifications');
+    } finally {
       setLoading(false);
-    }, 'Notifications.Fetch'),
-    []
-  );
+    }
+  }, [user]);
 
-  const markAsRead = useCallback(
-    withErrorHandling(async (notificationId: string) => {
-      await supabase.update<'notifications'>(
-        'notifications',
-        { id: notificationId },
-        { read: true },
-        'Notifications.MarkAsRead'
-      );
+  // Register for push notifications
+  useEffect(() => {
+    if (!user) return;
 
-      setNotifications(prev =>
-        prev.map(notification =>
+    let isMounted = true;
+
+    const registerDevice = async () => {
+      try {
+        const token = await registerForPushNotifications();
+        if (token && isMounted) {
+          await savePushToken(token, user.id);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'Failed to register for notifications');
+        }
+      }
+    };
+
+    registerDevice();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  // Subscribe to notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const matchSubscription = subscribeToMatchNotifications(
+      async (notification) => {
+        await loadNotifications();
+      }
+    );
+
+    const messageSubscription = subscribeToMessageNotifications(
+      async (notification) => {
+        await loadNotifications();
+      }
+    );
+
+    const reminderSubscription = subscribeToDateReminders(
+      async (notification) => {
+        await loadNotifications();
+      }
+    );
+
+    // Handle notification response when app is in background
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(
+      async (response) => {
+        const notificationId = response.notification.request.content.data?.notificationId;
+        if (notificationId) {
+          await markAsRead(notificationId);
+        }
+      }
+    );
+
+    // Initial load
+    loadNotifications();
+
+    return () => {
+      matchSubscription.remove();
+      messageSubscription.remove();
+      reminderSubscription.remove();
+      responseSubscription.remove();
+    };
+  }, [user, loadNotifications]);
+
+  const markAsRead = useCallback(async (notificationId: string) => {
+    try {
+      await markNotificationAsRead(notificationId);
+      setNotifications((prev) =>
+        prev.map((notification) =>
           notification.id === notificationId
             ? { ...notification, read: true }
             : notification
         )
       );
-    }, 'Notifications.MarkAsRead'),
-    []
-  );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to mark notification as read');
+    }
+  }, []);
 
-  const markAllAsRead = useCallback(
-    withErrorHandling(async () => {
-      const { user } = await supabase.auth.getUser();
-      if (!user) throw new AppError('No user found', ErrorCodes.AUTHENTICATION);
-
-      await supabase.update<'notifications'>(
-        'notifications',
-        { user_id: user.id, read: false },
-        { read: true },
-        'Notifications.MarkAllAsRead'
-      );
-
-      setNotifications(prev =>
-        prev.map(notification => ({ ...notification, read: true }))
-      );
-    }, 'Notifications.MarkAllAsRead'),
-    []
-  );
-
-  const deleteNotification = useCallback(
-    withErrorHandling(async (notificationId: string) => {
-      await supabase.delete<'notifications'>(
-        'notifications',
-        { id: notificationId },
-        'Notifications.Delete'
-      );
-
-      setNotifications(prev =>
-        prev.filter(notification => notification.id !== notificationId)
-      );
-    }, 'Notifications.Delete'),
-    []
-  );
-
-  const registerPushToken = useCallback(
-    withErrorHandling(async (token: string) => {
-      const { user } = await supabase.auth.getUser();
-      if (!user) throw new AppError('No user found', ErrorCodes.AUTHENTICATION);
-
-      const deviceId = await getDeviceId();
-      const platform = Platform.OS as PushToken['platform'];
-
-      // First invalidate any existing tokens for this device
-      await supabase.update<'push_tokens'>(
-        'push_tokens',
-        { device_id: deviceId, is_valid: true },
-        { is_valid: false },
-        'PushToken.Invalidate'
-      );
-
-      // Then insert the new token
-      await supabase.insert<'push_tokens'>(
-        'push_tokens',
-        {
-          user_id: user.id,
-          token,
-          device_id: deviceId,
-          platform,
-          is_valid: true,
-        },
-        'PushToken.Register'
-      );
-    }, 'PushToken.Register'),
-    []
-  );
-
-  const requestPermissions = useCallback(
-    withErrorHandling(async () => {
-      if (Platform.OS === 'web') return false;
-
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== 'granted') {
-        throw new AppError(
-          'Permission to receive notifications was denied',
-          ErrorCodes.PUSH_NOTIFICATION
-        );
-      }
-
-      // Get push token
-      const { data: token } = await Notifications.getExpoPushTokenAsync({
-        projectId: process.env.EXPO_PROJECT_ID,
-      });
-
-      // Store token in database
-      await registerPushToken(token);
-
-      return true;
-    }, 'Notifications.RequestPermissions'),
-    [registerPushToken]
-  );
-
-  // Subscribe to notification changes
-  useEffect(() => {
-    const setupSubscription = async () => {
-      const { user } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const subscription = supabase
-        .channel('notifications_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
-          async () => {
-            await fetchNotifications();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        subscription.unsubscribe();
-      };
-    };
-
-    setupSubscription();
-  }, [fetchNotifications]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  // Configure notification handler
-  useEffect(() => {
-    if (Platform.OS === 'web') return;
-
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-      }),
-    });
-
-    // Listen for incoming notifications when app is foregrounded
-    const subscription = Notifications.addNotificationReceivedListener(notification => {
-      fetchNotifications();
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [fetchNotifications]);
-
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return {
     notifications,
@@ -223,8 +134,6 @@ export function useNotifications(): UseNotificationsResult {
     loading,
     error,
     markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    requestPermissions,
+    refreshNotifications: loadNotifications,
   };
 }
