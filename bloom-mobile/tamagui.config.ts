@@ -1,8 +1,66 @@
 import { createTamagui, createFont, createTokens } from 'tamagui'
 import { shorthands } from '@tamagui/shorthands'
-import { themes, tokens } from '@tamagui/themes'
 import { createMedia } from '@tamagui/react-native-media-driver'
 import { createAnimations } from '@tamagui/animations-react-native'
+
+// Custom color tokens
+const tokens = createTokens({
+  color: {
+    primary: '#FFFFFF',
+    secondary: '#BAF2BB',
+    background: '#FFFFFF',
+    text: '#000000',
+    textSecondary: '#757575',
+    textSubtle: '#ADADAD',
+    success: '#4CAF50',
+    error: '#FF5252',
+    info: '#2196F3',
+    borderColor: 'rgba(0,0,0,0.1)',
+  },
+  space: {
+    $0: 0,
+    $1: 4,
+    $2: 8,
+    $3: 12,
+    $4: 16,
+    $5: 24,
+    $6: 32,
+    $7: 48,
+    $8: 64,
+    $9: 96,
+    $10: 128,
+  },
+  size: {
+    $0: 0,
+    $1: 4,
+    $2: 8,
+    $3: 12,
+    $4: 16,
+    $5: 24,
+    $6: 32,
+    $7: 48,
+    $8: 64,
+    $9: 96,
+    $10: 128,
+  },
+  radius: {
+    $0: 0,
+    $1: 4,
+    $2: 8,
+    $3: 12,
+    $4: 16,
+    $5: 24,
+    $6: 32,
+  },
+  zIndex: {
+    $0: 0,
+    $1: 100,
+    $2: 200,
+    $3: 300,
+    $4: 400,
+    $5: 500,
+  },
+})
 
 const animations = createAnimations({
   bouncy: {
@@ -25,32 +83,33 @@ const animations = createAnimations({
 })
 
 const headingFont = createFont({
-  family: 'System',
+  family: 'Geist',
   size: {
-    1: 14,
-    2: 16,
-    3: 18,
-    4: 22,
-    5: 26,
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 20,
+    5: 24,
     6: 32,
     7: 40,
-    8: 50,
-    9: 62,
+    8: 48,
+    9: 64,
   },
   lineHeight: {
-    1: 20,
-    2: 22,
+    1: 16,
+    2: 20,
     3: 24,
     4: 28,
     5: 32,
-    6: 38,
-    7: 46,
+    6: 40,
+    7: 48,
     8: 56,
-    9: 68,
+    9: 72,
   },
   weight: {
-    4: '300',
+    4: '400',
     6: '600',
+    8: '700',
   },
   letterSpacing: {
     4: 0,
@@ -59,39 +118,68 @@ const headingFont = createFont({
 })
 
 const bodyFont = createFont({
-  family: 'System',
+  family: 'OpenSauce',
   size: {
-    1: 11,
-    2: 12,
-    3: 13,
-    4: 14,
-    5: 16,
-    6: 18,
-    7: 20,
-    8: 22,
-    9: 24,
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 18,
+    5: 20,
+    6: 24,
+    7: 28,
+    8: 32,
+    9: 36,
   },
   lineHeight: {
-    1: 14,
-    2: 16,
-    3: 18,
-    4: 20,
-    5: 24,
-    6: 28,
-    7: 32,
-    8: 36,
-    9: 40,
+    1: 16,
+    2: 20,
+    3: 24,
+    4: 28,
+    5: 32,
+    6: 36,
+    7: 40,
+    8: 44,
+    9: 48,
   },
   weight: {
     4: '400',
-    6: '700',
+    6: '600',
   },
 })
 
+// Custom theme
+const light = {
+  background: tokens.color.background,
+  backgroundHover: tokens.color.secondary,
+  backgroundPress: tokens.color.secondary,
+  backgroundFocus: tokens.color.secondary,
+  color: tokens.color.text,
+  colorHover: tokens.color.textSecondary,
+  borderColor: tokens.color.borderColor,
+  borderColorHover: tokens.color.secondary,
+  borderColorFocus: tokens.color.secondary,
+  borderColorPress: tokens.color.secondary,
+  placeholderColor: tokens.color.textSubtle,
+}
+
+const themes = {
+  light,
+  light_primary: {
+    ...light,
+    background: tokens.color.primary,
+    color: tokens.color.text,
+  },
+  light_secondary: {
+    ...light,
+    background: tokens.color.secondary,
+    color: tokens.color.text,
+  },
+}
+
 const config = createTamagui({
   animations,
-  shouldAddPrefersColorThemes: true,
-  themeClassNameOnRoot: true,
+  shouldAddPrefersColorThemes: false,
+  themeClassNameOnRoot: false,
   shorthands,
   fonts: {
     heading: headingFont,

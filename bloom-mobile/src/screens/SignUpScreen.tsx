@@ -1,67 +1,22 @@
 import React, { useState } from 'react';
-import {
-  YStack,
-  XStack,
-  Text,
-  H1,
-  Button,
-  Input,
-  Form,
-  styled,
-} from 'tamagui';
 import { Alert } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
+import {
+  Container,
+  Title,
+  StyledInput,
+  StyledButton,
+  StepIndicator,
+  StepDot,
+  FormContainer,
+  ButtonContainer,
+} from '../theme/components';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
 type Step = 'credentials' | 'birth-info' | 'location';
-
-const Container = styled(YStack, {
-  flex: 1,
-  backgroundColor: '$background',
-  padding: '$4',
-});
-
-const Header = styled(YStack, {
-  paddingVertical: '$5',
-});
-
-const HeaderTitle = styled(H1, {
-  color: '$text',
-  fontFamily: '$heading',
-});
-
-const StepIndicator = styled(XStack, {
-  justifyContent: 'center',
-  marginTop: '$4',
-  space: '$4',
-});
-
-const StepDot = styled(YStack, {
-  width: 10,
-  height: 10,
-  borderRadius: 5,
-  backgroundColor: '$gray8',
-  variants: {
-    active: {
-      true: {
-        backgroundColor: '$primary',
-      },
-    },
-  },
-});
-
-const FormContainer = styled(Form, {
-  space: '$4',
-  marginTop: '$6',
-});
-
-const ButtonContainer = styled(XStack, {
-  justifyContent: 'space-between',
-  marginTop: '$6',
-});
 
 export default function SignUpScreen({ navigation }: Props) {
   const { signUp, loading } = useAuth();
@@ -130,126 +85,121 @@ export default function SignUpScreen({ navigation }: Props) {
 
   return (
     <Container>
-      <Header>
-        <HeaderTitle>Create Account</HeaderTitle>
-        <StepIndicator>
-          <StepDot active={currentStep === 'credentials'} />
-          <StepDot active={currentStep === 'birth-info'} />
-          <StepDot active={currentStep === 'location'} />
-        </StepIndicator>
-      </Header>
+      <Title textAlign="center">Create Account</Title>
+      <StepIndicator>
+        <StepDot active={currentStep === 'credentials'} />
+        <StepDot active={currentStep === 'birth-info'} />
+        <StepDot active={currentStep === 'location'} />
+      </StepIndicator>
 
       {currentStep === 'credentials' && (
         <FormContainer>
-          <Input
+          <StyledInput
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             keyboardType="email-address"
           />
-          <Input
+          <StyledInput
             placeholder="Password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
-          <Input
+          <StyledInput
             placeholder="Confirm Password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
           />
           <ButtonContainer>
-            <Button
+            <StyledButton
               flex={1}
-              variant="outlined"
+              variant="outline"
               disabled={true}
               opacity={0}
             >
               Back
-            </Button>
-            <Button
+            </StyledButton>
+            <StyledButton
               flex={1}
-              marginLeft="$4"
               onPress={handleNext}
               disabled={loading}
             >
               Next
-            </Button>
+            </StyledButton>
           </ButtonContainer>
         </FormContainer>
       )}
 
       {currentStep === 'birth-info' && (
         <FormContainer>
-          <Input
+          <StyledInput
             placeholder="Birth Date (YYYY-MM-DD)"
             value={birthDate}
             onChangeText={setBirthDate}
           />
-          <Input
+          <StyledInput
             placeholder="Birth Time (HH:mm)"
             value={birthTime}
             onChangeText={setBirthTime}
           />
           <ButtonContainer>
-            <Button
+            <StyledButton
               flex={1}
-              variant="outlined"
+              variant="outline"
               onPress={handleBack}
               disabled={loading}
             >
               Back
-            </Button>
-            <Button
+            </StyledButton>
+            <StyledButton
               flex={1}
-              marginLeft="$4"
               onPress={handleNext}
               disabled={loading}
             >
               Next
-            </Button>
+            </StyledButton>
           </ButtonContainer>
         </FormContainer>
       )}
 
       {currentStep === 'location' && (
         <FormContainer>
-          <Input
+          <StyledInput
             placeholder="City"
             value={city}
             onChangeText={setCity}
           />
-          <Input
+          <StyledInput
             placeholder="Latitude"
             value={latitude}
             onChangeText={setLatitude}
             keyboardType="numeric"
           />
-          <Input
+          <StyledInput
             placeholder="Longitude"
             value={longitude}
             onChangeText={setLongitude}
             keyboardType="numeric"
           />
           <ButtonContainer>
-            <Button
+            <StyledButton
               flex={1}
-              variant="outlined"
+              variant="outline"
               onPress={handleBack}
               disabled={loading}
             >
               Back
-            </Button>
-            <Button
+            </StyledButton>
+            <StyledButton
               flex={1}
-              marginLeft="$4"
               onPress={handleSubmit}
               disabled={loading}
             >
-              Sign Up
-            </Button>
+              {loading ? 'Creating Account...' : 'Sign Up'}
+            </StyledButton>
           </ButtonContainer>
         </FormContainer>
       )}

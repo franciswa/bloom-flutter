@@ -37,7 +37,7 @@ const Badge = styled(View, {
   position: 'absolute',
   top: -2,
   right: -6,
-  backgroundColor: '$primary',
+  backgroundColor: '$secondary',
   borderRadius: 10,
   minWidth: 20,
   height: 20,
@@ -46,7 +46,7 @@ const Badge = styled(View, {
 });
 
 const BadgeText = styled(Text, {
-  color: 'white',
+  color: '$text',
   fontSize: 12,
   fontWeight: 'bold',
 });
@@ -95,7 +95,7 @@ function TabNavigator() {
 
           return icon;
         },
-        tabBarActiveTintColor: '#FF8FB1',
+        tabBarActiveTintColor: '#BAF2BB',
         tabBarInactiveTintColor: 'gray',
       })}
     >

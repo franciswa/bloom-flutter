@@ -6,10 +6,10 @@ import {
   H1,
   Switch,
   Slider,
-  Button,
   Form,
   styled,
 } from 'tamagui';
+import { StyledButton } from '../theme/components';
 import { Alert } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import { UserSettings } from '../types/database';
@@ -282,21 +282,21 @@ export default function SettingsScreen() {
           </SettingRow>
         </Section>
 
-        <Button
+        <StyledButton
           marginTop="$6"
+          variant="primary"
           onPress={handleSave}
-          backgroundColor="$primary"
         >
           Save Settings
-        </Button>
+        </StyledButton>
 
-        <Button
+        <StyledButton
           marginTop="$4"
-          variant="outlined"
+          variant="outline"
           onPress={signOut}
         >
           Sign Out
-        </Button>
+        </StyledButton>
       </Form>
     </Container>
   );

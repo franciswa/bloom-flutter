@@ -1,51 +1,18 @@
 import React, { useState } from 'react';
-import {
-  YStack,
-  Text,
-  H1,
-  Button,
-  Input,
-  Form,
-  styled,
-} from 'tamagui';
 import { Alert } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
+import {
+  Container,
+  Title,
+  Subtitle,
+  StyledInput,
+  StyledButton,
+  BodyText,
+} from '../theme/components';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
-
-const Container = styled(YStack, {
-  flex: 1,
-  backgroundColor: '$background',
-  padding: '$4',
-});
-
-const Header = styled(YStack, {
-  paddingVertical: '$5',
-});
-
-const HeaderTitle = styled(H1, {
-  color: '$text',
-  fontFamily: '$heading',
-});
-
-const SubText = styled(Text, {
-  color: '$gray11',
-  textAlign: 'center',
-  marginTop: '$2',
-});
-
-const FormContainer = styled(Form, {
-  space: '$4',
-  marginTop: '$6',
-});
-
-const SignUpLink = styled(Text, {
-  color: '$primary',
-  textAlign: 'center',
-  marginTop: '$4',
-});
 
 export default function SignInScreen({ navigation }: Props) {
   const { signIn, loading } = useAuth();
@@ -70,37 +37,48 @@ export default function SignInScreen({ navigation }: Props) {
 
   return (
     <Container>
-      <Header>
-        <HeaderTitle>Welcome Back</HeaderTitle>
-        <SubText>Sign in to continue your journey</SubText>
-      </Header>
+      <Title textAlign="center">Welcome Back</Title>
+      <Subtitle textAlign="center">Sign in to continue your journey</Subtitle>
 
-      <FormContainer>
-        <Input
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <Input
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <Button
-          marginTop="$4"
-          onPress={handleSubmit}
-          disabled={loading}
+      <StyledInput
+        marginTop="$6"
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      
+      <StyledInput
+        marginTop="$3"
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <StyledButton
+        marginTop="$4"
+        onPress={handleSubmit}
+        disabled={loading}
+        variant="primary"
+      >
+        {loading ? 'Signing In...' : 'Sign In'}
+      </StyledButton>
+
+      <BodyText
+        marginTop="$4"
+        textAlign="center"
+        onPress={() => navigation.navigate('SignUp')}
+      >
+        Don't have an account?{' '}
+        <BodyText
+          color="$primary"
+          fontWeight="600"
         >
-          Sign In
-        </Button>
-      </FormContainer>
-
-      <SignUpLink onPress={() => navigation.navigate('SignUp')}>
-        Don't have an account? Sign up
-      </SignUpLink>
+          Sign up
+        </BodyText>
+      </BodyText>
     </Container>
   );
 }

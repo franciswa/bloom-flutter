@@ -5,11 +5,11 @@ import {
   Text,
   H2,
   Card,
-  Button,
   Image,
   Progress,
   styled,
 } from 'tamagui';
+import { StyledButton } from '../theme/components';
 import { ScrollView } from 'react-native';
 import { useProfile } from '../hooks/useProfile';
 import { useAuth } from '../hooks/useAuth';
@@ -130,9 +130,9 @@ export default function MatchesScreen() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '$green9';
-    if (score >= 60) return '$yellow9';
-    return '$red9';
+    if (score >= 80) return '$secondary';
+    if (score >= 60) return '$secondary';
+    return '$secondary';
   };
 
   return (
@@ -179,19 +179,17 @@ export default function MatchesScreen() {
             </MatchInfo>
 
             <ActionButtons>
-              <Button
-                variant="outlined"
-                theme="red"
+              <StyledButton
+                variant="outline"
                 onPress={() => handlePass(match.id)}
-                icon={<Text fontSize={20}>✕</Text>}
-                size="$5"
+                icon={<Text fontSize={20} color="$text">✕</Text>}
+                size="small"
               />
-              <Button
-                variant="outlined"
-                theme="blue"
+              <StyledButton
+                variant="primary"
                 onPress={() => handleLike(match.id)}
-                icon={<Text fontSize={20}>♥</Text>}
-                size="$5"
+                icon={<Text fontSize={20} color="$text">♥</Text>}
+                size="small"
               />
             </ActionButtons>
           </MatchCard>

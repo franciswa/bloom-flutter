@@ -5,9 +5,9 @@ import {
   H1,
   ScrollView,
   Card,
-  Button,
   styled,
 } from 'tamagui';
+import { StyledButton } from '../theme/components';
 import { RefreshControl } from 'react-native';
 import { useNotifications } from '../hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
@@ -33,12 +33,12 @@ const NotificationCard = styled(Card, {
   padding: '$4',
   backgroundColor: '$backgroundStrong',
   variants: {
-    unread: {
-      true: {
-        borderLeftColor: '$primary',
-        borderLeftWidth: 4,
-      },
+  unread: {
+    true: {
+      borderLeftColor: '$secondary',
+      borderLeftWidth: 4,
     },
+  },
   },
 });
 
@@ -92,7 +92,9 @@ export default function NotificationsScreen() {
     return (
       <EmptyState>
         <EmptyStateText>Failed to load notifications</EmptyStateText>
-        <Button onPress={refreshNotifications}>Try Again</Button>
+        <StyledButton variant="primary" onPress={refreshNotifications}>
+          Try Again
+        </StyledButton>
       </EmptyState>
     );
   }

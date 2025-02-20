@@ -1,13 +1,4 @@
 import React, { useState } from 'react';
-import {
-  YStack,
-  XStack,
-  Text,
-  H2,
-  Card,
-  Avatar,
-  styled,
-} from 'tamagui';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
@@ -15,44 +6,23 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TabParamList, RootStackParamList } from '../navigation/MainNavigator';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { Avatar as TamaguiAvatar } from 'tamagui';
+import {
+  Container,
+  Title,
+  BodyText,
+  StyledCard,
+  Badge,
+  BadgeText,
+  Row,
+  XStack,
+  YStack,
+} from '../theme/components';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Messages'>,
   NativeStackScreenProps<RootStackParamList>
 >;
-
-const Container = styled(YStack, {
-  flex: 1,
-  backgroundColor: '$background',
-  padding: '$4',
-});
-
-const ConversationCard = styled(Card, {
-  marginBottom: '$3',
-  padding: '$4',
-});
-
-const LastMessageText = styled(Text, {
-  color: '$gray11',
-  fontSize: '$3',
-  marginTop: '$1',
-  numberOfLines: 1,
-});
-
-const TimeText = styled(Text, {
-  color: '$gray10',
-  fontSize: '$2',
-});
-
-const UnreadBadge = styled(YStack, {
-  backgroundColor: '$blue9',
-  borderRadius: 10,
-  minWidth: 20,
-  height: 20,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginLeft: 'auto',
-});
 
 interface Message {
   id: string;
@@ -132,7 +102,7 @@ export default function MessagesScreen({ navigation }: Props) {
 
   return (
     <Container>
-      <H2 marginBottom="$4">Messages</H2>
+      <Title marginBottom="$4">Messages</Title>
       <ScrollView showsVerticalScrollIndicator={false}>
         {conversations.map((conversation) => (
           <TouchableOpacity
@@ -140,46 +110,51 @@ export default function MessagesScreen({ navigation }: Props) {
             onPress={() => handleConversationPress(conversation)}
             activeOpacity={0.7}
           >
-            <ConversationCard elevation={1}>
-              <XStack space="$3" alignItems="center">
-                <Avatar circular size="$6">
-                  <Avatar.Image src={conversation.matchPhoto} />
-                  <Avatar.Fallback backgroundColor="$gray5" />
-                </Avatar>
+            <StyledCard marginBottom="$3" interactive>
+              <Row>
+                <TamaguiAvatar circular size="$6">
+                  <TamaguiAvatar.Image src={conversation.matchPhoto} />
+                  <TamaguiAvatar.Fallback backgroundColor="$secondary" />
+                </TamaguiAvatar>
                 
-                <YStack flex={1}>
+                <YStack flex={1} marginLeft="$3">
                   <XStack justifyContent="space-between" alignItems="center">
-                    <Text
-                      fontSize="$5"
-                      fontWeight={conversation.unreadCount > 0 ? 'bold' : 'normal'}
+                    <BodyText
+                      fontSize="$4"
+                      fontWeight={conversation.unreadCount > 0 ? '600' : '400'}
                     >
                       {conversation.matchName}
-                    </Text>
-                    <TimeText>
+                    </BodyText>
+                    <BodyText
+                      fontSize="$2"
+                      color="$textSubtle"
+                    >
                       {formatMessageTime(conversation.lastMessage.timestamp)}
-                    </TimeText>
+                    </BodyText>
                   </XStack>
                   
-                  <XStack alignItems="center">
-                    <LastMessageText
+                  <XStack alignItems="center" marginTop="$1">
+                    <BodyText
                       flex={1}
-                      fontWeight={conversation.unreadCount > 0 ? 'bold' : 'normal'}
+                      numberOfLines={1}
+                      fontWeight={conversation.unreadCount > 0 ? '600' : '400'}
+                      color={conversation.unreadCount > 0 ? '$text' : '$textSecondary'}
                     >
                       {conversation.lastMessage.senderId === user?.id ? 'You: ' : ''}
                       {conversation.lastMessage.content}
-                    </LastMessageText>
+                    </BodyText>
                     
                     {conversation.unreadCount > 0 && (
-                      <UnreadBadge>
-                        <Text color="white" fontSize="$2" fontWeight="bold">
+                      <Badge>
+                        <BadgeText>
                           {conversation.unreadCount}
-                        </Text>
-                      </UnreadBadge>
+                        </BadgeText>
+                      </Badge>
                     )}
                   </XStack>
                 </YStack>
-              </XStack>
-            </ConversationCard>
+              </Row>
+            </StyledCard>
           </TouchableOpacity>
         ))}
       </ScrollView>
