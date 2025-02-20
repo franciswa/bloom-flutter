@@ -1,3 +1,4 @@
+import { supabase } from '../lib/supabase';
 import { Profile } from '../types/database';
 
 interface SignUpData {
@@ -27,7 +28,6 @@ interface AuthState {
   error: string | null;
 }
 
-// This will be replaced with actual Supabase auth
 let authState: AuthState = {
   user: null,
   profile: null,
@@ -40,50 +40,53 @@ export async function signUp(data: SignUpData): Promise<void> {
     authState.loading = true;
     authState.error = null;
 
-    // TODO: Implement with Supabase
-    // const { data: authData, error } = await supabase.auth.signUp({
-    //   email: data.email,
-    //   password: data.password
-    // });
-    // if (error) throw error;
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password
+    });
+    if (error) throw error;
+    if (!authData.user) throw new Error('No user data returned');
 
     // Create profile
-    // const { data: profileData, error: profileError } = await supabase
-    //   .from('profiles')
-    //   .insert({
-    //     id: authData.user.id,
-    //     email: data.email,
-    //     birth_date: data.birthDate,
-    //     birth_time: data.birthTime,
-    //     birth_location: data.birthLocation,
-    //     photos: [],
-    //     personality_ratings: {},
-    //     lifestyle_ratings: {},
-    //     values_ratings: {}
-    //   })
-    //   .single();
-    // if (profileError) throw profileError;
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        user_id: authData.user.id,
+        name: data.email.split('@')[0], // Temporary name from email
+        birth_info: {
+          date: data.birthDate,
+          time: data.birthTime,
+          latitude: data.birthLocation.latitude,
+          longitude: data.birthLocation.longitude,
+          city: data.birthLocation.city
+        },
+        photos: [],
+        personality_ratings: {},
+        lifestyle_ratings: {},
+        values_ratings: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .single();
+    
+    if (profileError) throw profileError;
 
-    // For now, mock the response
     authState.user = {
-      id: '1',
-      email: data.email
+      id: authData.user.id,
+      email: authData.user.email || ''
     };
-    authState.profile = {
-      id: '1',
-      email: data.email,
-      birth_date: data.birthDate,
-      birth_time: data.birthTime,
-      birth_location: data.birthLocation,
-      location_city: null,
-      photos: [],
-      personality_ratings: {},
-      lifestyle_ratings: {},
-      values_ratings: {},
-      natal_chart: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+
+    // Fetch the created profile
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    authState.profile = profile;
+
   } catch (err) {
     authState.error = err instanceof Error ? err.message : 'Failed to sign up';
     throw new Error(authState.error);
@@ -97,41 +100,28 @@ export async function signIn(data: SignInData): Promise<void> {
     authState.loading = true;
     authState.error = null;
 
-    // TODO: Implement with Supabase
-    // const { data: authData, error } = await supabase.auth.signInWithPassword({
-    //   email: data.email,
-    //   password: data.password
-    // });
-    // if (error) throw error;
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password
+    });
+    if (error) throw error;
+    if (!authData.user) throw new Error('No user data returned');
 
     // Get profile
-    // const { data: profileData, error: profileError } = await supabase
-    //   .from('profiles')
-    //   .select('*')
-    //   .eq('id', authData.user.id)
-    //   .single();
-    // if (profileError) throw profileError;
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authData.user.id)
+      .single();
+    
+    if (profileError) throw profileError;
 
-    // For now, mock the response
     authState.user = {
-      id: '1',
-      email: data.email
+      id: authData.user.id,
+      email: authData.user.email || ''
     };
-    authState.profile = {
-      id: '1',
-      email: data.email,
-      birth_date: null,
-      birth_time: null,
-      birth_location: null,
-      location_city: null,
-      photos: [],
-      personality_ratings: {},
-      lifestyle_ratings: {},
-      values_ratings: {},
-      natal_chart: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    authState.profile = profile;
+
   } catch (err) {
     authState.error = err instanceof Error ? err.message : 'Failed to sign in';
     throw new Error(authState.error);
@@ -145,9 +135,8 @@ export async function signOut(): Promise<void> {
     authState.loading = true;
     authState.error = null;
 
-    // TODO: Implement with Supabase
-    // const { error } = await supabase.auth.signOut();
-    // if (error) throw error;
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
 
     authState.user = null;
     authState.profile = null;
@@ -162,3 +151,31 @@ export async function signOut(): Promise<void> {
 export function getAuthState(): AuthState {
   return { ...authState };
 }
+
+// Initialize auth state from session
+supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+  if (error) {
+    console.error('Error fetching session:', error.message);
+    return;
+  }
+
+  if (session?.user) {
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (profileError) throw profileError;
+
+      authState.user = {
+        id: session.user.id,
+        email: session.user.email || ''
+      };
+      authState.profile = profile;
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+    }
+  }
+});

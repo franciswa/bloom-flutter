@@ -1,66 +1,9 @@
-import { createTamagui, createFont, createTokens } from 'tamagui'
+import { createTamagui } from '@tamagui/core'
+import { createInterFont } from '@tamagui/font-inter'
 import { shorthands } from '@tamagui/shorthands'
+import { themes, tokens } from '@tamagui/themes'
 import { createMedia } from '@tamagui/react-native-media-driver'
 import { createAnimations } from '@tamagui/animations-react-native'
-
-// Custom color tokens
-const tokens = createTokens({
-  color: {
-    primary: '#FFFFFF',
-    secondary: '#BAF2BB',
-    background: '#FFFFFF',
-    text: '#000000',
-    textSecondary: '#757575',
-    textSubtle: '#ADADAD',
-    success: '#4CAF50',
-    error: '#FF5252',
-    info: '#2196F3',
-    borderColor: 'rgba(0,0,0,0.1)',
-  },
-  space: {
-    $0: 0,
-    $1: 4,
-    $2: 8,
-    $3: 12,
-    $4: 16,
-    $5: 24,
-    $6: 32,
-    $7: 48,
-    $8: 64,
-    $9: 96,
-    $10: 128,
-  },
-  size: {
-    $0: 0,
-    $1: 4,
-    $2: 8,
-    $3: 12,
-    $4: 16,
-    $5: 24,
-    $6: 32,
-    $7: 48,
-    $8: 64,
-    $9: 96,
-    $10: 128,
-  },
-  radius: {
-    $0: 0,
-    $1: 4,
-    $2: 8,
-    $3: 12,
-    $4: 16,
-    $5: 24,
-    $6: 32,
-  },
-  zIndex: {
-    $0: 0,
-    $1: 100,
-    $2: 200,
-    $3: 300,
-    $4: 400,
-    $5: 500,
-  },
-})
 
 const animations = createAnimations({
   bouncy: {
@@ -68,11 +11,6 @@ const animations = createAnimations({
     damping: 10,
     mass: 0.9,
     stiffness: 100,
-  },
-  lazy: {
-    type: 'spring',
-    damping: 20,
-    stiffness: 60,
   },
   quick: {
     type: 'spring',
@@ -82,8 +20,7 @@ const animations = createAnimations({
   },
 })
 
-const headingFont = createFont({
-  family: 'Geist',
+const headingFont = createInterFont({
   size: {
     1: 12,
     2: 14,
@@ -95,89 +32,43 @@ const headingFont = createFont({
     8: 48,
     9: 64,
   },
-  lineHeight: {
-    1: 16,
-    2: 20,
-    3: 24,
-    4: 28,
-    5: 32,
-    6: 40,
-    7: 48,
-    8: 56,
-    9: 72,
+  transform: {
+    6: 'uppercase',
+    7: 'none',
   },
   weight: {
-    4: '400',
-    6: '600',
-    8: '700',
+    3: '500',
+    4: '700',
+  },
+  color: {
+    6: '$colorFocus',
   },
   letterSpacing: {
-    4: 0,
-    8: -1,
+    5: 2,
+    6: 1,
+    7: -1,
+    8: -2,
+    9: -3,
+  },
+  face: {
+    700: { normal: 'InterBold' },
   },
 })
 
-const bodyFont = createFont({
-  family: 'OpenSauce',
-  size: {
-    1: 12,
-    2: 14,
-    3: 16,
-    4: 18,
-    5: 20,
-    6: 24,
-    7: 28,
-    8: 32,
-    9: 36,
+const bodyFont = createInterFont(
+  {
+    face: {
+      normal: { normal: 'Inter' },
+    },
   },
-  lineHeight: {
-    1: 16,
-    2: 20,
-    3: 24,
-    4: 28,
-    5: 32,
-    6: 36,
-    7: 40,
-    8: 44,
-    9: 48,
-  },
-  weight: {
-    4: '400',
-    6: '600',
-  },
-})
-
-// Custom theme
-const light = {
-  background: tokens.color.background,
-  backgroundHover: tokens.color.secondary,
-  backgroundPress: tokens.color.secondary,
-  backgroundFocus: tokens.color.secondary,
-  color: tokens.color.text,
-  colorHover: tokens.color.textSecondary,
-  borderColor: tokens.color.borderColor,
-  borderColorHover: tokens.color.secondary,
-  borderColorFocus: tokens.color.secondary,
-  borderColorPress: tokens.color.secondary,
-  placeholderColor: tokens.color.textSubtle,
-}
-
-const themes = {
-  light,
-  light_primary: {
-    ...light,
-    background: tokens.color.primary,
-    color: tokens.color.text,
-  },
-  light_secondary: {
-    ...light,
-    background: tokens.color.secondary,
-    color: tokens.color.text,
-  },
-}
+  {
+    sizeSize: (size) => Math.round(size * 1.1),
+    sizeLineHeight: (size) => Math.round(size * 1.1 + (size > 20 ? 10 : 10)),
+  }
+)
 
 const config = createTamagui({
-  animations,
+  defaultTheme: 'light',
   shouldAddPrefersColorThemes: false,
   themeClassNameOnRoot: false,
   shorthands,
@@ -185,8 +76,36 @@ const config = createTamagui({
     heading: headingFont,
     body: bodyFont,
   },
-  themes,
+  themes: {
+    light: {
+      background: '#FFFFFF',
+      backgroundHover: '#BAF2BB',
+      backgroundPress: '#BAF2BB',
+      backgroundFocus: '#BAF2BB',
+      color: '#000000',
+      colorHover: '#757575',
+      borderColor: 'rgba(0,0,0,0.1)',
+      borderColorHover: '#BAF2BB',
+      borderColorFocus: '#BAF2BB',
+      borderColorPress: '#BAF2BB',
+      placeholderColor: '#ADADAD',
+    },
+    dark: {
+      background: '#000000',
+      backgroundHover: '#BAF2BB',
+      backgroundPress: '#BAF2BB',
+      backgroundFocus: '#BAF2BB',
+      color: '#FFFFFF',
+      colorHover: '#ADADAD',
+      borderColor: 'rgba(255,255,255,0.1)',
+      borderColorHover: '#BAF2BB',
+      borderColorFocus: '#BAF2BB',
+      borderColorPress: '#BAF2BB',
+      placeholderColor: '#757575',
+    },
+  },
   tokens,
+  animations,
   media: createMedia({
     xs: { maxWidth: 660 },
     sm: { maxWidth: 800 },

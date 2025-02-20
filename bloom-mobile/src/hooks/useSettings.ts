@@ -1,47 +1,39 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { UserSettings, ThemeMode } from '../types/database';
+import { UserSettings } from '../types/database';
 
-export interface UseSettingsResult {
+interface UseSettingsResult {
   settings: UserSettings | null;
   loading: boolean;
   error: string | null;
-  updateThemeMode: (mode: ThemeMode) => Promise<void>;
-  updateNotificationPreferences: (preferences: {
-    matches?: boolean;
-    messages?: boolean;
-    date_reminders?: boolean;
-  }) => Promise<void>;
-  updateSettings: (updates: Partial<Omit<UserSettings, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => Promise<void>;
+  saveSettings: (settings: Partial<UserSettings>) => Promise<void>;
+  refreshSettings: () => Promise<void>;
 }
 
-export function useSettings(): UseSettingsResult {
+export function useSettings(userId: string): UseSettingsResult {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSettings = useCallback(async () => {
+  const loadSettings = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setSettings(null);
-        setLoading(false);
-        return;
-      }
+      setLoading(true);
+      setError(null);
 
-      const { data, error: dbError } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
-      if (dbError) throw dbError;
+      if (fetchError) throw fetchError;
 
       if (!data) {
         // Create default settings if none exist
-        const defaultSettings: Omit<UserSettings, 'id' | 'created_at' | 'updated_at'> = {
-          user_id: user.id,
-          theme_mode: 'system',
+        const defaultSettings: UserSettings = {
+          id: crypto.randomUUID(),
+          user_id: userId,
+          theme_mode: 'light',
           dark_mode: false,
           notifications_enabled: true,
           notification_preferences: {
@@ -49,9 +41,9 @@ export function useSettings(): UseSettingsResult {
             messages: true,
             date_reminders: true,
           },
-          distance_range: 50, // 50 miles/km default
+          distance_range: 50,
           age_range_min: 18,
-          age_range_max: 99,
+          age_range_max: 45,
           show_zodiac: true,
           show_birth_time: true,
           privacy_settings: {
@@ -59,137 +51,88 @@ export function useSettings(): UseSettingsResult {
             show_age: true,
             show_profile_photo: true,
           },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
 
-        const { data: newSettings, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from('user_settings')
-          .insert(defaultSettings)
-          .select()
-          .single();
+          .insert(defaultSettings);
 
         if (insertError) throw insertError;
-
-        setSettings(newSettings);
+        setSettings(defaultSettings);
       } else {
         setSettings(data);
       }
-
-      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load settings');
-      console.error('Error loading settings:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
-  const updateThemeMode = useCallback(async (mode: ThemeMode) => {
+  const saveSettings = async (newSettings: Partial<UserSettings>) => {
     if (!settings) return;
 
     try {
-      const { error: dbError } = await supabase
-        .from('user_settings')
-        .update({ theme_mode: mode })
-        .eq('id', settings.id);
-
-      if (dbError) throw dbError;
-
-      setSettings(prev => prev ? { ...prev, theme_mode: mode } : null);
-    } catch (err) {
-      console.error('Error updating theme mode:', err);
-      throw err;
-    }
-  }, [settings]);
-
-  const updateNotificationPreferences = useCallback(async (preferences: {
-    matches?: boolean;
-    messages?: boolean;
-    date_reminders?: boolean;
-  }) => {
-    if (!settings) return;
-
-    try {
-      const updatedPreferences = {
-        ...settings.notification_preferences,
-        ...preferences,
+      setError(null);
+      const updatedSettings = {
+        ...settings,
+        ...newSettings,
+        updated_at: new Date().toISOString(),
       };
 
-      const { error: dbError } = await supabase
+      const { error: updateError } = await supabase
         .from('user_settings')
-        .update({ notification_preferences: updatedPreferences })
+        .update(updatedSettings)
         .eq('id', settings.id);
 
-      if (dbError) throw dbError;
-
-      setSettings(prev => prev ? {
-        ...prev,
-        notification_preferences: updatedPreferences,
-      } : null);
+      if (updateError) throw updateError;
+      setSettings(updatedSettings);
     } catch (err) {
-      console.error('Error updating notification preferences:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save settings');
       throw err;
     }
-  }, [settings]);
-
-  const updateSettings = useCallback(async (updates: Partial<Omit<UserSettings, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
-    if (!settings) return;
-
-    try {
-      const { error: dbError } = await supabase
-        .from('user_settings')
-        .update(updates)
-        .eq('id', settings.id);
-
-      if (dbError) throw dbError;
-
-      setSettings(prev => prev ? { ...prev, ...updates } : null);
-    } catch (err) {
-      console.error('Error updating settings:', err);
-      throw err;
-    }
-  }, [settings]);
+  };
 
   // Subscribe to settings changes
   useEffect(() => {
-    const setupSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    if (!userId) return;
 
-      const subscription = supabase
-        .channel('settings_changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'user_settings',
-            filter: `user_id=eq.${user.id}`,
-          },
-          async () => {
-            await fetchSettings();
+    const channel = supabase
+      .channel(`settings:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_settings',
+          filter: `user_id=eq.${userId}`,
+        },
+        async (payload) => {
+          if (payload.eventType === 'DELETE') {
+            setSettings(null);
+          } else {
+            const newSettings = payload.new as UserSettings;
+            setSettings(newSettings);
           }
-        )
-        .subscribe();
+        }
+      )
+      .subscribe();
 
-      return () => {
-        subscription.unsubscribe();
-      };
+    // Initial load
+    loadSettings();
+
+    return () => {
+      channel.unsubscribe();
     };
-
-    setupSubscription();
-  }, [fetchSettings]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+  }, [userId, loadSettings]);
 
   return {
     settings,
     loading,
     error,
-    updateThemeMode,
-    updateNotificationPreferences,
-    updateSettings,
+    saveSettings,
+    refreshSettings: loadSettings,
   };
 }

@@ -11,11 +11,15 @@ import { useNotifications } from '../hooks/useNotifications';
 import MatchesScreen from '../screens/MatchesScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import ChatScreen from '../screens/ChatScreen';
+import DateScreen from '../screens/DateScreen';
+import MatchScreen from '../screens/MatchScreen';
+import QuestionnaireScreen from '../screens/QuestionnaireScreen';
 
 // Separate types for Tab and Stack navigators
 export type TabParamList = {
   Matches: undefined;
   Messages: undefined;
+  Dates: undefined;
   Notifications: undefined;
   Profile: undefined;
   Settings: undefined;
@@ -27,6 +31,12 @@ export type RootStackParamList = {
     matchId: string;
     matchName: string;
     matchPhoto: string;
+  };
+  Match: {
+    matchId: string;
+  };
+  Questionnaire: {
+    type: 'personality' | 'lifestyle' | 'values';
   };
 };
 
@@ -66,6 +76,9 @@ function TabNavigator() {
             case 'Messages':
               iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
               break;
+            case 'Dates':
+              iconName = focused ? 'calendar' : 'calendar-outline';
+              break;
             case 'Notifications':
               iconName = focused ? 'notifications' : 'notifications-outline';
               break;
@@ -101,6 +114,7 @@ function TabNavigator() {
     >
       <Tab.Screen name="Matches" component={MatchesScreen} />
       <Tab.Screen name="Messages" component={MessagesScreen} />
+      <Tab.Screen name="Dates" component={DateScreen} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
@@ -119,6 +133,16 @@ export default function MainNavigator() {
       <Stack.Screen
         name="Chat"
         component={ChatScreen}
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="Match"
+        component={MatchScreen}
+        options={{ headerShown: true }}
+      />
+      <Stack.Screen
+        name="Questionnaire"
+        component={QuestionnaireScreen}
         options={{ headerShown: true }}
       />
     </Stack.Navigator>

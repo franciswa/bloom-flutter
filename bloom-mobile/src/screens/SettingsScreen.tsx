@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   YStack,
   XStack,
@@ -8,11 +8,12 @@ import {
   Slider,
   Form,
   styled,
+  useTheme,
 } from 'tamagui';
-import { StyledButton } from '../theme/components';
-import { Alert } from 'react-native';
+import { StyledButton, LoadingContainer } from '../theme/components';
+import { Alert, ActivityIndicator } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
-import { UserSettings } from '../types/database';
+import { useSettings } from '../hooks/useSettings';
 
 const Container = styled(YStack, {
   flex: 1,
@@ -65,45 +66,27 @@ const SliderValue = styled(Text, {
 });
 
 export default function SettingsScreen() {
-  const { profile, signOut } = useAuth();
-  const [settings, setSettings] = useState<UserSettings>({
-    id: '1',
-    user_id: profile?.id || '',
-    theme_mode: 'light',
-    dark_mode: false,
-    notifications_enabled: true,
-    notification_preferences: {
-      matches: true,
-      messages: true,
-      date_reminders: true,
-    },
-    distance_range: 50,
-    age_range_min: 18,
-    age_range_max: 45,
-    show_zodiac: true,
-    show_birth_time: true,
-    privacy_settings: {
-      show_location: true,
-      show_age: true,
-      show_profile_photo: true,
-    },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  });
+  const { user, signOut } = useAuth();
+  const { settings, loading, error, saveSettings } = useSettings(user?.id || '');
 
-  const handleSave = async () => {
-    try {
-      // TODO: Save settings to database
-      // await supabase
-      //   .from('user_settings')
-      //   .upsert(settings)
-      //   .eq('user_id', profile?.id);
-      
-      Alert.alert('Success', 'Settings saved successfully');
-    } catch (err) {
-      Alert.alert('Error', 'Failed to save settings');
-    }
-  };
+  if (loading) {
+    return (
+      <LoadingContainer>
+        <ActivityIndicator size="large" color="#BAF2BB" />
+      </LoadingContainer>
+    );
+  }
+
+  if (error || !settings) {
+    return (
+      <LoadingContainer>
+        <Text color="$error" marginBottom="$4">{error || 'Failed to load settings'}</Text>
+        <StyledButton variant="primary" onPress={() => window.location.reload()}>
+          Retry
+        </StyledButton>
+      </LoadingContainer>
+    );
+  }
 
   return (
     <Container>
@@ -113,16 +96,26 @@ export default function SettingsScreen() {
 
       <Form space="$4">
         <Section>
+          <SectionTitle>Appearance</SectionTitle>
+          <SettingRow>
+            <SettingLabel>Dark Mode</SettingLabel>
+            <Switch
+              checked={settings.dark_mode}
+              onCheckedChange={(checked) =>
+                saveSettings({ dark_mode: checked })
+              }
+            />
+          </SettingRow>
+        </Section>
+
+        <Section>
           <SectionTitle>Notifications</SectionTitle>
           <SettingRow>
             <SettingLabel>Enable Notifications</SettingLabel>
             <Switch
               checked={settings.notifications_enabled}
               onCheckedChange={(checked) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  notifications_enabled: checked,
-                }))
+                saveSettings({ notifications_enabled: checked })
               }
             />
           </SettingRow>
@@ -133,13 +126,12 @@ export default function SettingsScreen() {
                 <Switch
                   checked={settings.notification_preferences.matches}
                   onCheckedChange={(checked) =>
-                    setSettings((prev) => ({
-                      ...prev,
+                    saveSettings({
                       notification_preferences: {
-                        ...prev.notification_preferences,
+                        ...settings.notification_preferences,
                         matches: checked,
                       },
-                    }))
+                    })
                   }
                 />
               </SettingRow>
@@ -148,13 +140,12 @@ export default function SettingsScreen() {
                 <Switch
                   checked={settings.notification_preferences.messages}
                   onCheckedChange={(checked) =>
-                    setSettings((prev) => ({
-                      ...prev,
+                    saveSettings({
                       notification_preferences: {
-                        ...prev.notification_preferences,
+                        ...settings.notification_preferences,
                         messages: checked,
                       },
-                    }))
+                    })
                   }
                 />
               </SettingRow>
@@ -163,13 +154,12 @@ export default function SettingsScreen() {
                 <Switch
                   checked={settings.notification_preferences.date_reminders}
                   onCheckedChange={(checked) =>
-                    setSettings((prev) => ({
-                      ...prev,
+                    saveSettings({
                       notification_preferences: {
-                        ...prev.notification_preferences,
+                        ...settings.notification_preferences,
                         date_reminders: checked,
                       },
-                    }))
+                    })
                   }
                 />
               </SettingRow>
@@ -184,10 +174,7 @@ export default function SettingsScreen() {
             <Slider
               value={[settings.distance_range]}
               onValueChange={([value]) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  distance_range: value,
-                }))
+                saveSettings({ distance_range: value })
               }
               width="100%"
               min={1}
@@ -203,10 +190,7 @@ export default function SettingsScreen() {
               <Slider
                 value={[settings.age_range_min]}
                 onValueChange={([value]) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    age_range_min: value,
-                  }))
+                  saveSettings({ age_range_min: value })
                 }
                 width="45%"
                 min={18}
@@ -216,10 +200,7 @@ export default function SettingsScreen() {
               <Slider
                 value={[settings.age_range_max]}
                 onValueChange={([value]) =>
-                  setSettings((prev) => ({
-                    ...prev,
-                    age_range_max: value,
-                  }))
+                  saveSettings({ age_range_max: value })
                 }
                 width="45%"
                 min={18}
@@ -240,13 +221,12 @@ export default function SettingsScreen() {
             <Switch
               checked={settings.privacy_settings.show_location}
               onCheckedChange={(checked) =>
-                setSettings((prev) => ({
-                  ...prev,
+                saveSettings({
                   privacy_settings: {
-                    ...prev.privacy_settings,
+                    ...settings.privacy_settings,
                     show_location: checked,
                   },
-                }))
+                })
               }
             />
           </SettingRow>
@@ -255,13 +235,12 @@ export default function SettingsScreen() {
             <Switch
               checked={settings.privacy_settings.show_age}
               onCheckedChange={(checked) =>
-                setSettings((prev) => ({
-                  ...prev,
+                saveSettings({
                   privacy_settings: {
-                    ...prev.privacy_settings,
+                    ...settings.privacy_settings,
                     show_age: checked,
                   },
-                }))
+                })
               }
             />
           </SettingRow>
@@ -270,13 +249,34 @@ export default function SettingsScreen() {
             <Switch
               checked={settings.privacy_settings.show_profile_photo}
               onCheckedChange={(checked) =>
-                setSettings((prev) => ({
-                  ...prev,
+                saveSettings({
                   privacy_settings: {
-                    ...prev.privacy_settings,
+                    ...settings.privacy_settings,
                     show_profile_photo: checked,
                   },
-                }))
+                })
+              }
+            />
+          </SettingRow>
+        </Section>
+
+        <Section>
+          <SectionTitle>Astrological</SectionTitle>
+          <SettingRow>
+            <SettingLabel>Show Zodiac Sign</SettingLabel>
+            <Switch
+              checked={settings.show_zodiac}
+              onCheckedChange={(checked) =>
+                saveSettings({ show_zodiac: checked })
+              }
+            />
+          </SettingRow>
+          <SettingRow>
+            <SettingLabel>Show Birth Time</SettingLabel>
+            <Switch
+              checked={settings.show_birth_time}
+              onCheckedChange={(checked) =>
+                saveSettings({ show_birth_time: checked })
               }
             />
           </SettingRow>
@@ -284,14 +284,6 @@ export default function SettingsScreen() {
 
         <StyledButton
           marginTop="$6"
-          variant="primary"
-          onPress={handleSave}
-        >
-          Save Settings
-        </StyledButton>
-
-        <StyledButton
-          marginTop="$4"
           variant="outline"
           onPress={signOut}
         >

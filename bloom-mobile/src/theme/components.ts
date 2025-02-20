@@ -1,5 +1,5 @@
 import { styled, GetProps } from 'tamagui'
-import { View, YStack, XStack, Text, Button, Input, Card, Avatar as TamaguiAvatar } from 'tamagui'
+import { View, YStack, XStack, Text, Button, Input, Card, Avatar as TamaguiAvatar, Circle } from 'tamagui'
 import { ScrollView } from 'react-native'
 
 // Re-export Tamagui stacks
@@ -343,6 +343,83 @@ export const MessageInput = styled(Input, {
   color: '$text',
 })
 
+// Match components
+export const MatchCard = styled(Card, {
+  width: '100%',
+  backgroundColor: '$background',
+  borderRadius: '$4',
+  padding: '$4',
+  marginBottom: '$4',
+  
+  variants: {
+    highlighted: {
+      true: {
+        borderWidth: 2,
+        borderColor: '$secondary',
+      },
+    },
+  } as const,
+})
+
+export const MatchImage = styled(View, {
+  width: '100%',
+  height: 300,
+  borderRadius: '$3',
+  backgroundColor: '$secondary',
+  marginBottom: '$3',
+})
+
+export const MatchName = styled(Text, {
+  fontFamily: '$heading',
+  fontSize: '$6',
+  color: '$text',
+  marginBottom: '$1',
+})
+
+export const MatchBio = styled(Text, {
+  fontFamily: '$body',
+  fontSize: '$3',
+  color: '$textSecondary',
+  marginBottom: '$3',
+})
+
+export const MatchStat = styled(XStack, {
+  alignItems: 'center',
+  space: '$2',
+  marginBottom: '$2',
+})
+
+export const MatchStatLabel = styled(Text, {
+  fontFamily: '$body',
+  fontSize: '$2',
+  color: '$textSubtle',
+})
+
+export const MatchStatValue = styled(Text, {
+  fontFamily: '$body',
+  fontSize: '$2',
+  color: '$text',
+  fontWeight: '600',
+})
+
+export const CompatibilityScore = styled(View, {
+  position: 'absolute',
+  top: '$3',
+  right: '$3',
+  backgroundColor: '$secondary',
+  borderRadius: '$4',
+  padding: '$2',
+  minWidth: 60,
+  alignItems: 'center',
+})
+
+export const CompatibilityText = styled(Text, {
+  fontFamily: '$heading',
+  fontSize: '$4',
+  color: '$text',
+  fontWeight: '600',
+})
+
 // Step indicator components
 export const StepIndicator = styled(XStack, {
   justifyContent: 'center',
@@ -377,4 +454,202 @@ export const ButtonContainer = styled(XStack, {
   justifyContent: 'space-between',
   marginTop: '$6',
   space: '$4',
+})
+
+// Astrological components
+export const ZodiacIcon = styled(View, {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  backgroundColor: '$secondary',
+  alignItems: 'center',
+  justifyContent: 'center',
+  
+  variants: {
+    element: {
+      fire: {
+        backgroundColor: '$red8',
+      },
+      earth: {
+        backgroundColor: '$green8',
+      },
+      air: {
+        backgroundColor: '$yellow8',
+      },
+      water: {
+        backgroundColor: '$blue8',
+      },
+    },
+    size: {
+      small: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+      },
+      large: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+      },
+    },
+  } as const,
+})
+
+export type ZodiacIconProps = GetProps<typeof ZodiacIcon>
+
+export const AspectLine = styled(View, {
+  height: 2,
+  backgroundColor: '$secondary',
+  
+  variants: {
+    aspect: {
+      conjunction: {
+        backgroundColor: '$green8',
+      },
+      opposition: {
+        backgroundColor: '$red8',
+      },
+      trine: {
+        backgroundColor: '$blue8',
+      },
+      square: {
+        backgroundColor: '$yellow8',
+      },
+      sextile: {
+        backgroundColor: '$purple8',
+      },
+    },
+  } as const,
+})
+
+export type AspectLineProps = GetProps<typeof AspectLine>
+
+export const ChartWheel = styled(Circle, {
+  width: 300,
+  height: 300,
+  borderWidth: 2,
+  borderColor: '$borderColor',
+  alignItems: 'center',
+  justifyContent: 'center',
+})
+
+export const HouseSegment = styled(View, {
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  
+  variants: {
+    active: {
+      true: {
+        borderColor: '$secondary',
+        borderWidth: 2,
+      },
+    },
+  } as const,
+})
+
+export const PlanetSymbol = styled(Text, {
+  fontSize: '$4',
+  color: '$text',
+  fontFamily: '$body',
+  
+  variants: {
+    highlighted: {
+      true: {
+        color: '$secondary',
+        fontSize: '$5',
+      },
+    },
+  } as const,
+})
+
+export const AspectGrid = styled(View, {
+  width: '100%',
+  aspectRatio: 1,
+  borderWidth: 1,
+  borderColor: '$borderColor',
+})
+
+export const AspectCell = styled(View, {
+  borderWidth: 0.5,
+  borderColor: '$borderColor',
+  alignItems: 'center',
+  justifyContent: 'center',
+  
+  variants: {
+    highlighted: {
+      true: {
+        backgroundColor: '$backgroundHover',
+      },
+    },
+  } as const,
+})
+
+export const CompatibilityDetail = styled(YStack, {
+  padding: '$3',
+  borderRadius: '$2',
+  backgroundColor: '$backgroundStrong',
+  marginBottom: '$2',
+})
+
+export const CompatibilityLabel = styled(Text, {
+  fontSize: '$3',
+  color: '$textSecondary',
+  marginBottom: '$1',
+  fontFamily: '$body',
+})
+
+export const CompatibilityValue = styled(Text, {
+  fontSize: '$4',
+  color: '$text',
+  fontWeight: 'bold',
+  fontFamily: '$body',
+})
+
+export const ElementTag = styled(View, {
+  paddingHorizontal: '$2',
+  paddingVertical: '$1',
+  borderRadius: '$1',
+  
+  variants: {
+    element: {
+      fire: {
+        backgroundColor: '$red3',
+      },
+      earth: {
+        backgroundColor: '$green3',
+      },
+      air: {
+        backgroundColor: '$yellow3',
+      },
+      water: {
+        backgroundColor: '$blue3',
+      },
+    },
+  } as const,
+})
+
+export const ElementText = styled(Text, {
+  fontSize: '$2',
+  fontWeight: '600',
+  fontFamily: '$body',
+  
+  variants: {
+    element: {
+      fire: {
+        color: '$red11',
+      },
+      earth: {
+        color: '$green11',
+      },
+      air: {
+        color: '$yellow11',
+      },
+      water: {
+        color: '$blue11',
+      },
+    },
+  } as const,
 })

@@ -1,54 +1,26 @@
 import React, { useState } from 'react';
-import {
-  YStack,
-  XStack,
-  Text,
-  H2,
-  Card,
-  Image,
-  Progress,
-  styled,
-} from 'tamagui';
-import { StyledButton } from '../theme/components';
 import { ScrollView } from 'react-native';
+import { Progress, Text } from 'tamagui';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  Container,
+  Title,
+  MatchCard,
+  MatchImage,
+  MatchName,
+  MatchBio,
+  MatchStat,
+  MatchStatLabel,
+  MatchStatValue,
+  CompatibilityScore,
+  CompatibilityText,
+  StyledButton,
+  XStack,
+  YStack,
+} from '../theme/components';
 import { useProfile } from '../hooks/useProfile';
 import { useAuth } from '../hooks/useAuth';
-import { CompatibilityScore } from '../types/compatibility';
-
-const Container = styled(YStack, {
-  flex: 1,
-  backgroundColor: '$background',
-  padding: '$4',
-});
-
-const MatchCard = styled(Card, {
-  marginBottom: '$4',
-  overflow: 'hidden',
-});
-
-const MatchImage = styled(Image, {
-  width: '100%',
-  height: 300,
-  backgroundColor: '$gray5',
-});
-
-const MatchInfo = styled(YStack, {
-  padding: '$4',
-  space: '$2',
-});
-
-const ScoreContainer = styled(XStack, {
-  alignItems: 'center',
-  space: '$2',
-  marginTop: '$2',
-});
-
-const ActionButtons = styled(XStack, {
-  justifyContent: 'space-between',
-  padding: '$4',
-  borderTopWidth: 1,
-  borderTopColor: '$borderColor',
-});
+import { CompatibilityScore as CompatibilityScoreType } from '../types/compatibility';
 
 interface Match {
   id: string;
@@ -57,7 +29,7 @@ interface Match {
   imageUrl: string;
   location: string;
   bio: string;
-  compatibility: CompatibilityScore;
+  compatibility: CompatibilityScoreType;
 }
 
 // Temporary mock data
@@ -129,69 +101,88 @@ export default function MatchesScreen() {
     console.log('Passed:', matchId);
   };
 
+  const handleViewProfile = (matchId: string) => {
+    // TODO: Navigate to match profile
+    console.log('View profile:', matchId);
+  };
+
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '$secondary';
-    if (score >= 60) return '$secondary';
-    return '$secondary';
+    if (score >= 80) return '$success';
+    if (score >= 60) return '$warning';
+    return '$error';
   };
 
   return (
     <Container>
-      <H2 marginBottom="$4">Matches</H2>
+      <Title marginBottom="$4">Discover</Title>
       <ScrollView showsVerticalScrollIndicator={false}>
         {matches.map((match) => (
-          <MatchCard key={match.id} elevation={2}>
-            <MatchImage source={{ uri: match.imageUrl }} />
-            <MatchInfo>
-              <Text fontSize="$6" fontWeight="bold">
+          <MatchCard key={match.id} onPress={() => handleViewProfile(match.id)}>
+            <MatchImage>
+              {/* TODO: Add proper image loading */}
+              <Text>Image placeholder</Text>
+            </MatchImage>
+
+            <CompatibilityScore>
+              <CompatibilityText>
+                {match.compatibility.total}%
+              </CompatibilityText>
+            </CompatibilityScore>
+
+            <YStack padding="$4" space="$2">
+              <MatchName>
                 {match.name}, {match.age}
-              </Text>
-              <Text color="$gray11">{match.location}</Text>
-              <Text marginTop="$2">{match.bio}</Text>
-              
-              <ScoreContainer>
-                <Text fontWeight="bold" color={getScoreColor(match.compatibility.total)}>
-                  {match.compatibility.total}% Match
-                </Text>
-                <Progress
-                  value={match.compatibility.total}
-                  backgroundColor="$gray5"
-                  width={150}
-                >
-                  <Progress.Indicator
-                    animation="bouncy"
-                    backgroundColor={getScoreColor(match.compatibility.total)}
-                  />
-                </Progress>
-              </ScoreContainer>
+              </MatchName>
+              <Text color="$textSecondary">{match.location}</Text>
+              <MatchBio>{match.bio}</MatchBio>
 
-              <XStack marginTop="$2" space="$2">
-                <Text fontSize="$3" color="$gray11">
-                  Astrological: {match.compatibility.astrological.total}%
-                </Text>
-                <Text fontSize="$3" color="$gray11">
-                  •
-                </Text>
-                <Text fontSize="$3" color="$gray11">
-                  Questionnaire: {match.compatibility.questionnaire}%
-                </Text>
+              <YStack space="$3" marginTop="$2">
+                <MatchStat>
+                  <MatchStatLabel>Astrological Match</MatchStatLabel>
+                  <MatchStatValue>{match.compatibility.astrological.total}%</MatchStatValue>
+                  <Progress
+                    value={match.compatibility.astrological.total}
+                    backgroundColor="$backgroundHover"
+                    width={100}
+                  >
+                    <Progress.Indicator
+                      animation="quick"
+                      backgroundColor={getScoreColor(match.compatibility.astrological.total)}
+                    />
+                  </Progress>
+                </MatchStat>
+
+                <MatchStat>
+                  <MatchStatLabel>Values Match</MatchStatLabel>
+                  <MatchStatValue>{match.compatibility.questionnaire}%</MatchStatValue>
+                  <Progress
+                    value={match.compatibility.questionnaire}
+                    backgroundColor="$backgroundHover"
+                    width={100}
+                  >
+                    <Progress.Indicator
+                      animation="quick"
+                      backgroundColor={getScoreColor(match.compatibility.questionnaire)}
+                    />
+                  </Progress>
+                </MatchStat>
+              </YStack>
+
+              <XStack marginTop="$4" justifyContent="space-between">
+                <StyledButton
+                  variant="outline"
+                  onPress={() => handlePass(match.id)}
+                  icon={<Ionicons name="close" size={24} color="$text" />}
+                  size="small"
+                />
+                <StyledButton
+                  variant="primary"
+                  onPress={() => handleLike(match.id)}
+                  icon={<Ionicons name="heart" size={24} color="$text" />}
+                  size="small"
+                />
               </XStack>
-            </MatchInfo>
-
-            <ActionButtons>
-              <StyledButton
-                variant="outline"
-                onPress={() => handlePass(match.id)}
-                icon={<Text fontSize={20} color="$text">✕</Text>}
-                size="small"
-              />
-              <StyledButton
-                variant="primary"
-                onPress={() => handleLike(match.id)}
-                icon={<Text fontSize={20} color="$text">♥</Text>}
-                size="small"
-              />
-            </ActionButtons>
+            </YStack>
           </MatchCard>
         ))}
       </ScrollView>

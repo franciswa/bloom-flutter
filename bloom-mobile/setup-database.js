@@ -1,75 +1,121 @@
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
-const supabaseUrl = 'https://yqgssgqzlflqwuahtxbk.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlxZ3NzZ3F6bGZscXd1YWh0eGJrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczODAzNjg0NSwiZXhwIjoyMDUzNjEyODQ1fQ.-HeV8LzAprwgFaJ8gSjD2c7xaYzi_ugU9ukrviNPyog';
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+  console.error('Missing required environment variables. Please check your .env file.');
+  process.exit(1);
+}
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 async function setupDatabase() {
   try {
     console.log('Setting up database...');
 
-    // Create messages table
-    console.log('\nCreating messages table...');
-    const { error: messagesError } = await supabase
-      .from('messages')
-      .insert({
-        id: '00000000-0000-0000-0000-000000000000',
-        match_id: '00000000-0000-0000-0000-000000000000',
-        sender_id: '00000000-0000-0000-0000-000000000000',
-        content: 'test',
-        is_system_message: false,
-        read: false
+    // Read and execute SQL file
+    const sqlPath = path.join(__dirname, 'database', 'create-tables.sql');
+    const sql = fs.readFileSync(sqlPath, 'utf8');
+    
+    // Split SQL into individual statements
+    const statements = sql
+      .split(';')
+      .map(statement => statement.trim())
+      .filter(statement => statement.length > 0);
+
+    // Execute each statement
+    for (const statement of statements) {
+      const { error } = await supabase.rpc('exec_sql', {
+        sql_statement: statement
       });
 
-    if (messagesError && !messagesError.message.includes('duplicate key')) {
-      console.error('Error creating messages table:', messagesError);
-      return;
+      if (error) {
+        console.error('Error executing SQL statement:', error);
+        console.error('Statement:', statement);
+        return;
+      }
     }
 
-    // Create RLS policies
-    console.log('\nCreating RLS policies...');
-    const { error: policyError } = await supabase.rpc('apply_rls_policies', {
-      table_name: 'messages',
-      policies: [
-        {
-          name: 'Users can read messages in their matches',
-          operation: 'SELECT',
-          using: `auth.uid() IN (
-            SELECT user1_id FROM matches WHERE id = match_id
-            UNION
-            SELECT user2_id FROM matches WHERE id = match_id
-          )`
-        },
-        {
-          name: 'Users can insert messages in their matches',
-          operation: 'INSERT',
-          check: `auth.uid() = sender_id AND
-          auth.uid() IN (
-            SELECT user1_id FROM matches WHERE id = match_id
-            UNION
-            SELECT user2_id FROM matches WHERE id = match_id
-          )`
+    // Verify tables were created
+    const tables = [
+      'profiles',
+      'user_settings',
+      'push_tokens',
+      'matches',
+      'messages',
+      'archived_messages',
+      'notifications'
+    ];
+
+    for (const table of tables) {
+      const { data, error } = await supabase
+        .from(table)
+        .select('*')
+        .limit(1);
+
+      if (error && !error.message.includes('relation') && !error.message.includes('permission')) {
+        console.error(`Error verifying table ${table}:`, error);
+        return;
+      }
+
+      console.log(`✓ Table ${table} created successfully`);
+    }
+
+    // Create test user if it doesn't exist
+    if (process.env.NODE_ENV === 'development') {
+      const { data: user, error: userError } = await supabase.auth.admin.createUser({
+        email: 'test@example.com',
+        password: 'test123',
+        email_confirm: true
+      });
+
+      if (userError && !userError.message.includes('already exists')) {
+        console.error('Error creating test user:', userError);
+      } else {
+        console.log('✓ Test user created successfully');
+
+        // Create test profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            user_id: user.id,
+            name: 'Test User',
+            birth_info: {
+              date: '1990-01-01',
+              time: '12:00',
+              latitude: 37.7749,
+              longitude: -122.4194,
+              city: 'San Francisco'
+            }
+          });
+
+        if (profileError) {
+          console.error('Error creating test profile:', profileError);
+        } else {
+          console.log('✓ Test profile created successfully');
         }
-      ]
-    });
 
-    if (policyError) {
-      console.error('Error creating RLS policies:', policyError);
-      return;
-    }
+        // Create test settings
+        const { error: settingsError } = await supabase
+          .from('user_settings')
+          .upsert({
+            user_id: user.id,
+            theme_mode: 'light',
+            dark_mode: false,
+            notifications_enabled: true
+          });
 
-    // Enable realtime
-    console.log('\nEnabling realtime...');
-    const { error: realtimeError } = await supabase.rpc('enable_realtime', {
-      table_name: 'messages'
-    });
-
-    if (realtimeError) {
-      console.error('Error enabling realtime:', realtimeError);
-      return;
+        if (settingsError) {
+          console.error('Error creating test settings:', settingsError);
+        } else {
+          console.log('✓ Test settings created successfully');
+        }
+      }
     }
 
     console.log('\nDatabase setup completed successfully!');

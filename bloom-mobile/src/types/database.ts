@@ -1,93 +1,86 @@
-export type DateType = 'Dinner' | 'Coffee' | 'Drinks' | 'Games/Arcade' | 'Picnic' | 'Activity/Adventure' | 'Other/Anything';
-
-export type MatchStatus = 'pending' | 'accepted' | 'rejected';
-export type DatePreferenceStatus = 'pending' | 'matching' | 'matched' | 'cancelled' | 'expired';
-export type NotificationType = 'match' | 'message' | 'date_reminder' | 'system';
-export type ThemeMode = 'light' | 'dark' | 'system';
-export type PlatformType = 'ios' | 'android' | 'web';
-
 export interface Profile {
   id: string;
-  email: string;
-  birth_date: string | null;
-  birth_time: string | null;
-  birth_location: {
-    city: string;
-    latitude: number;
-    longitude: number;
-  } | null;
-  location_city: string | null;
-  personality_ratings: Record<string, number>;
-  lifestyle_ratings: Record<string, number>;
-  values_ratings: Record<string, number>;
-  natal_chart: {
-    signs: Record<string, string>;
-    planets: Record<string, {
+  user_id: string;
+  name: string;
+  birth_info?: BirthInfo;
+  natal_chart?: NatalChart;
+  photos: Photo[];
+  personality_ratings?: Record<string, number>;
+  lifestyle_ratings?: Record<string, number>;
+  values_ratings?: Record<string, number>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BirthInfo {
+  date: string;
+  time: string;
+  latitude: number;
+  longitude: number;
+  city?: string;
+}
+
+export interface NatalChart {
+  signs: {
+    sun: string;
+    moon: string;
+    ascendant: string;
+    mercury: string;
+    venus: string;
+    mars: string;
+    jupiter: string;
+    saturn: string;
+    uranus: string;
+    neptune: string;
+    pluto: string;
+  };
+  planets: {
+    [key: string]: {
       planet: string;
       house: number;
-      degree: number;
-      retrograde: boolean;
-    }>;
-    aspects: Array<{
-      planet1: string;
-      planet2: string;
-      aspect: string;
-      orb: number;
-    }>;
-  } | null;
-  photos: Array<{
-    id: string;
-    url: string;
-    is_primary: boolean;
-    uploaded_at: string;
-  }>;
-  created_at: string;
-  updated_at: string;
+    };
+  };
 }
 
-export interface Match {
+export interface Photo {
   id: string;
-  user1_id: string;
-  user2_id: string;
-  date_preferences_id: string;
-  match_date: string;
-  date_type: DateType;
-  status: MatchStatus;
-  compatibility_score: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DatePreference {
-  id: string;
-  user_id: string;
-  desired_zodiac: string;
-  date_type: DateType;
-  preferred_date: string;
-  status: DatePreferenceStatus;
-  created_at: string;
-  updated_at: string;
+  url: string;
+  order: number;
 }
 
 export interface Message {
   id: string;
-  match_id: string;
+  conversation_id: string;
   sender_id: string;
   content: string;
-  is_system_message: boolean;
+  created_at: string;
+  read: boolean;
+}
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  created_at: string;
+  updated_at: string;
+  last_message?: Message;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'match' | 'message' | 'system' | 'date_reminder';
+  data?: Record<string, any>;
   read: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface ArchivedMessage extends Message {
-  archived_at: string;
-}
-
 export interface UserSettings {
   id: string;
   user_id: string;
-  theme_mode: ThemeMode;
+  theme_mode: 'light' | 'dark';
   dark_mode: boolean;
   notifications_enabled: boolean;
   notification_preferences: {
@@ -109,77 +102,71 @@ export interface UserSettings {
   updated_at: string;
 }
 
-export interface Notification {
-  id: string;
-  user_id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  data?: {
-    match_id?: string;
-    message_id?: string;
-    date_preference_id?: string;
-  };
-  read: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface PushToken {
   id: string;
   user_id: string;
   token: string;
   device_id: string;
-  platform: PlatformType;
+  platform: string;
   is_valid: boolean;
-  last_used_at: string;
+  last_used: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: Profile;
-        Insert: Omit<Profile, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      matches: {
-        Row: Match;
-        Insert: Omit<Match, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Match, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      date_preferences: {
-        Row: DatePreference;
-        Insert: Omit<DatePreference, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<DatePreference, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      messages: {
-        Row: Message;
-        Insert: Omit<Message, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Message, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      archived_messages: {
-        Row: ArchivedMessage;
-        Insert: Omit<ArchivedMessage, 'archived_at'>;
-        Update: never;  // Archived messages are read-only
-      };
-      user_settings: {
-        Row: UserSettings;
-        Insert: Omit<UserSettings, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<UserSettings, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      notifications: {
-        Row: Notification;
-        Insert: Omit<Notification, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Notification, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      push_tokens: {
-        Row: PushToken;
-        Insert: Omit<PushToken, 'id' | 'created_at' | 'updated_at' | 'last_used_at'>;
-        Update: Partial<Omit<PushToken, 'id' | 'created_at' | 'updated_at' | 'last_used_at'>>;
-      };
+export type DateType = 
+  | 'Dinner'
+  | 'Coffee'
+  | 'Drinks'
+  | 'Games/Arcade'
+  | 'Picnic'
+  | 'Activity/Adventure'
+  | 'Other/Anything';
+
+export type DateStatus = 
+  | 'pending'
+  | 'matching'
+  | 'matched'
+  | 'cancelled'
+  | 'completed';
+
+export interface DatePreference {
+  id: string;
+  user_id: string;
+  desired_zodiac: string;
+  date_type: DateType;
+  preferred_date: string;
+  status: DateStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Match {
+  id: string;
+  user1_id: string;
+  user2_id: string;
+  compatibility_score: number;
+  astrological_compatibility: {
+    total: number;
+    aspect: {
+      total: number;
+      aspectScore: number;
+      elementScore: number;
+      aspectDetails: Array<{
+        planet1: string;
+        planet2: string;
+        aspect: string;
+        orb: number;
+        score: number;
+      }>;
+    };
+    element: {
+      elementScore: number;
+      signModifier: number;
     };
   };
+  questionnaire_compatibility: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  updated_at: string;
 }
