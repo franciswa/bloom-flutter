@@ -75,6 +75,7 @@ export interface Message {
   sender_id: string;
   content: string;
   is_system_message: boolean;
+  read: boolean;
   created_at: string;
   updated_at: string;
 }

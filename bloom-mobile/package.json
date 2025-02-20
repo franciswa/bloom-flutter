@@ -23,7 +23,7 @@
     "@react-navigation/native-stack": "^6.9.17",
     "@rneui/base": "^4.0.0-rc.7",
     "@rneui/themed": "^4.0.0-rc.7",
-    "@supabase/supabase-js": "^2.38.4",
+    "@supabase/supabase-js": "^2.48.1",
     "@tamagui/animations-react-native": "^1.79.7",
     "@tamagui/babel-plugin": "^1.79.7",
     "@tamagui/config": "^1.79.7",

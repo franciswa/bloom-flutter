@@ -1,269 +1,209 @@
 import React, { useState, useRef } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import {
   YStack,
   XStack,
   Text,
   Input,
   Button,
-  Card,
-  Separator,
+  ScrollView,
+  Avatar,
   styled,
-  Stack,
 } from 'tamagui';
-import { Ionicons } from '@expo/vector-icons';
-import { useRoute, RouteProp } from '@react-navigation/native';
-import { useMatch } from '../hooks/useMatch';
-import { RootStackParamList } from '../types/navigation';
-import { Message } from '../types/database';
+import { KeyboardAvoidingView, Platform, TextInput, ScrollView as RNScrollView } from 'react-native';
+import { useAuth } from '../hooks/useAuth';
+import { useChat } from '../hooks/useChat';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/MainNavigator';
 
-type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'Chat'>;
 
-const MainContainer = styled(KeyboardAvoidingView, {
+const Container = styled(YStack, {
   flex: 1,
   backgroundColor: '$background',
 });
 
-const Header = styled(YStack, {
-  backgroundColor: '$backgroundStrong',
+const MessageList = styled(RNScrollView, {
+  flex: 1,
   padding: '$4',
 });
 
-const HeaderTitle = styled(Text, {
-  fontSize: '$5',
-  fontWeight: 'bold',
-  color: '$text',
-  fontFamily: '$body',
-});
+import type { GetProps } from '@tamagui/web';
 
-const HeaderSubtitle = styled(Text, {
-  fontSize: '$3',
-  color: '$gray10',
-  marginTop: '$1',
-  fontFamily: '$body',
-});
+type MessageBubbleProps = GetProps<typeof YStack> & {
+  sent?: boolean;
+};
 
-const MessageList = styled(YStack, {
-  padding: '$4',
-});
-
-type MessageType = 'self' | 'other' | 'system';
-
-const MessageBubble = styled(Card, {
+const MessageBubble = styled(YStack, {
+  name: 'MessageBubble',
   maxWidth: '80%',
-  borderRadius: '$6',
   padding: '$3',
+  borderRadius: 16,
   marginBottom: '$2',
-  
   variants: {
-    messageType: {
-      self: {
+    sent: {
+      true: {
+        backgroundColor: '$blue9',
         alignSelf: 'flex-end',
-        borderBottomRightRadius: '$1',
-        backgroundColor: '$primary',
       },
-      other: {
+      false: {
+        backgroundColor: '$gray5',
         alignSelf: 'flex-start',
-        borderBottomLeftRadius: '$1',
-        backgroundColor: '$backgroundHover',
-      },
-      system: {
-        alignSelf: 'center',
-        backgroundColor: 'transparent',
-        padding: '$2',
       },
     },
   } as const,
-});
+  defaultVariants: {
+    sent: false,
+  },
+} as const) as React.FC<MessageBubbleProps>;
+
+type MessageTextProps = GetProps<typeof Text> & {
+  sent?: boolean;
+};
 
 const MessageText = styled(Text, {
-  fontSize: '$4',
-  lineHeight: 20,
-  fontFamily: '$body',
-  
+  name: 'MessageText',
   variants: {
-    messageType: {
-      self: {
+    sent: {
+      true: {
         color: 'white',
       },
-      other: {
-        color: '$text',
-      },
-      system: {
-        color: '$gray10',
-        fontSize: '$2',
-        textAlign: 'center',
+      false: {
+        color: '$gray12',
       },
     },
   } as const,
-});
+  defaultVariants: {
+    sent: false,
+  },
+} as const) as React.FC<MessageTextProps>;
 
-const MessageTime = styled(Text, {
+const TimeText = styled(Text, {
   fontSize: '$2',
+  color: '$gray10',
   marginTop: '$1',
-  alignSelf: 'flex-end',
-  fontFamily: '$body',
-  
-  variants: {
-    messageType: {
-      self: {
-        color: 'white',
-      },
-      other: {
-        color: '$gray10',
-      },
-      system: {
-        color: '$gray10',
-      },
-    },
-  } as const,
 });
 
 const InputContainer = styled(XStack, {
-  backgroundColor: '$backgroundStrong',
-  padding: '$2',
+  padding: '$4',
   borderTopWidth: 1,
-  borderColor: '$borderColor',
-  alignItems: 'center',
+  borderTopColor: '$borderColor',
+  backgroundColor: '$background',
 });
 
-const ChatInput = styled(Input, {
+const MessageInput = styled(Input, {
   flex: 1,
-  backgroundColor: '$background',
-  borderRadius: '$5',
   marginRight: '$2',
-  height: 'auto',
-  minHeight: 40,
-  maxHeight: 100,
-  paddingHorizontal: '$4',
-  fontSize: '$4',
-  color: '$text',
-  fontFamily: '$body',
+  paddingVertical: '$2',
 });
 
-const LoadingContainer = styled(YStack, {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: '$background',
-});
+function formatMessageTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 
-const ErrorText = styled(Text, {
-  fontSize: '$4',
-  color: '$red10',
-  textAlign: 'center',
-  fontFamily: '$body',
-});
-
-export default function ChatScreen() {
-  const route = useRoute<ChatScreenRouteProp>();
-  const { match, messages, loading, error, sendMessage } = useMatch(route.params.matchId);
+export default function ChatScreen({ route, navigation }: Props) {
+  const { matchId, matchName, matchPhoto } = route.params;
+  const { user } = useAuth();
+  const { messages, loading, error, sendMessage, loadMoreMessages, hasMoreMessages } = useChat(
+    matchId,
+    user?.id || ''
+  );
   const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const inputRef = useRef<TextInput>(null);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      title: matchName,
+      headerRight: () => (
+        <Avatar circular size="$4" marginRight="$2">
+          <Avatar.Image src={matchPhoto} />
+          <Avatar.Fallback backgroundColor="$gray5" />
+        </Avatar>
+      ),
+    });
+  }, [navigation, matchName, matchPhoto]);
 
   const handleSend = async () => {
     if (!newMessage.trim()) return;
 
-    setSending(true);
     try {
       await sendMessage(newMessage.trim());
       setNewMessage('');
+      inputRef.current?.clear();
       // Scroll to bottom after sending
-      flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+      scrollViewRef.current?.scrollToEnd({ animated: true });
     } catch (err) {
       // Error is handled by the hook
-    } finally {
-      setSending(false);
+      console.error('Failed to send message:', err);
     }
   };
 
-  const renderMessage = ({ item: message }: { item: Message }) => {
-    const isSystem = message.is_system_message;
-    const isSelf = message.sender_id === match?.user1_id;
-    const messageType = isSystem ? 'system' : isSelf ? 'self' : 'other' as const;
-
-    return (
-      <MessageBubble messageType={messageType} elevate={!isSystem}>
-        <MessageText messageType={messageType}>{message.content}</MessageText>
-        {!isSystem && (
-          <MessageTime messageType={messageType}>
-            {new Date(message.created_at).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </MessageTime>
-        )}
-      </MessageBubble>
-    );
+  const handleScroll = ({ nativeEvent }: any) => {
+    // Load more when scrolling near the top
+    if (nativeEvent.contentOffset.y <= 0 && hasMoreMessages && !loading) {
+      loadMoreMessages();
+    }
   };
 
-  if (loading) {
-    return (
-      <LoadingContainer>
-        <ActivityIndicator size="large" color="$primary" />
-      </LoadingContainer>
-    );
-  }
-
-  if (error || !match) {
-    return (
-      <LoadingContainer>
-        <ErrorText>{error || 'Failed to load chat'}</ErrorText>
-      </LoadingContainer>
-    );
-  }
-
   return (
-    <MainContainer
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
-    >
-      <Header>
-        <HeaderTitle>
-          {match.partner_profile.email?.split('@')[0]}
-        </HeaderTitle>
-        <HeaderSubtitle>
-          {match.date_type} • {new Date(match.match_date).toLocaleDateString()}
-        </HeaderSubtitle>
-      </Header>
-
-      <Separator />
-
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={item => item.id}
-        inverted
-        contentContainerStyle={{ padding: 16 }}
-        showsVerticalScrollIndicator={false}
-      />
-
-      <InputContainer>
-        <ChatInput
-          placeholder="Type a message..."
-          value={newMessage}
-          onChangeText={setNewMessage}
-          multiline
-          maxLength={500}
-          disabled={sending}
-        />
-        <Button
-          onPress={handleSend}
-          disabled={sending || !newMessage.trim()}
-          backgroundColor={sending || !newMessage.trim() ? '$gray8' : '$primary'}
-          borderRadius="$4"
-          padding="$3"
-          pressStyle={{ opacity: 0.8 }}
+    <Container>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <MessageList
+          ref={scrollViewRef as any}
+          onScroll={handleScroll}
+          scrollEventThrottle={400}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexDirection: 'column-reverse' }}
         >
-          <Ionicons 
-            name="send" 
-            size={24} 
-            color={sending || !newMessage.trim() ? '$gray10' : 'white'} 
+          {messages.map((message) => (
+            <MessageBubble
+              key={message.id}
+              sent={message.sender_id === user?.id}
+            >
+              <MessageText sent={message.sender_id === user?.id}>
+                {message.content}
+              </MessageText>
+              <TimeText>
+                {formatMessageTime(message.created_at)}
+              </TimeText>
+            </MessageBubble>
+          ))}
+          {loading && (
+            <Text textAlign="center" color="$gray11">
+              Loading messages...
+            </Text>
+          )}
+          {error && (
+            <Text textAlign="center" color="$red10">
+              {error}
+            </Text>
+          )}
+        </MessageList>
+
+        <InputContainer>
+          <MessageInput
+            ref={inputRef}
+            placeholder="Type a message..."
+            value={newMessage}
+            onChangeText={setNewMessage}
+            multiline
+            maxHeight={100}
+            onSubmitEditing={handleSend}
           />
-        </Button>
-      </InputContainer>
-    </MainContainer>
+          <Button
+            size="$4"
+            theme="blue"
+            disabled={!newMessage.trim()}
+            onPress={handleSend}
+          >
+            Send
+          </Button>
+        </InputContainer>
+      </KeyboardAvoidingView>
+    </Container>
   );
 }

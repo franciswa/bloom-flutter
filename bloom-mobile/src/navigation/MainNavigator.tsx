@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { Text, styled } from 'tamagui';
@@ -7,12 +8,12 @@ import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import { useNotifications } from '../hooks/useNotifications';
+import MatchesScreen from '../screens/MatchesScreen';
+import MessagesScreen from '../screens/MessagesScreen';
+import ChatScreen from '../screens/ChatScreen';
 
-// Placeholder screens until they're implemented
-const MatchesScreen = () => null;
-const MessagesScreen = () => null;
-
-export type MainTabParamList = {
+// Separate types for Tab and Stack navigators
+export type TabParamList = {
   Matches: undefined;
   Messages: undefined;
   Notifications: undefined;
@@ -20,7 +21,17 @@ export type MainTabParamList = {
   Settings: undefined;
 };
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+export type RootStackParamList = {
+  Tabs: undefined;
+  Chat: {
+    matchId: string;
+    matchName: string;
+    matchPhoto: string;
+  };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 const Badge = styled(View, {
   position: 'absolute',
@@ -40,7 +51,7 @@ const BadgeText = styled(Text, {
   fontWeight: 'bold',
 });
 
-export default function MainNavigator() {
+function TabNavigator() {
   const { unreadCount } = useNotifications();
   return (
     <Tab.Navigator
@@ -94,5 +105,22 @@ export default function MainNavigator() {
       <Tab.Screen name="Profile" component={ProfileScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
+  );
+}
+
+export default function MainNavigator() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Tabs"
+        component={TabNavigator}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={{ headerShown: true }}
+      />
+    </Stack.Navigator>
   );
 }
