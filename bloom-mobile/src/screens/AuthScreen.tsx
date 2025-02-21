@@ -6,7 +6,7 @@ import { AuthStackParamList } from '../navigation/AuthNavigator';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 
-export default function WelcomeScreen({ navigation }: Props) {
+export default function AuthScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <YStack space="$4" padding="$4">
@@ -19,20 +19,9 @@ export default function WelcomeScreen({ navigation }: Props) {
           Welcome to Bloom
         </Text>
         
-        <Text
-          fontFamily="$body"
-          fontSize="$4"
-          textAlign="center"
-          color="$textSecondary"
-          marginBottom="$6"
-        >
-          Find your perfect match through the power of astrology
-        </Text>
-        
         <Button
           size="$5"
           backgroundColor="$primary"
-          color="$background"
           onPress={() => navigation.navigate('SignIn')}
         >
           Sign In

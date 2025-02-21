@@ -1,9 +1,10 @@
-import { createTamagui } from '@tamagui/core'
-import { createInterFont } from '@tamagui/font-inter'
-import { shorthands } from '@tamagui/shorthands'
-import { themes, tokens } from '@tamagui/themes'
-import { createMedia } from '@tamagui/react-native-media-driver'
-import { createAnimations } from '@tamagui/animations-react-native'
+import { createTamagui } from '@tamagui/core';
+import { createInterFont } from '@tamagui/font-inter';
+import { shorthands } from '@tamagui/shorthands';
+import { tokens } from '@tamagui/themes';
+import { createMedia } from '@tamagui/react-native-media-driver';
+import { createAnimations } from '@tamagui/animations-react-native';
+import { themes } from './src/theme';
 
 const animations = createAnimations({
   bouncy: {
@@ -18,7 +19,7 @@ const animations = createAnimations({
     mass: 1.2,
     stiffness: 250,
   },
-})
+});
 
 const headingFont = createInterFont({
   size: {
@@ -53,7 +54,7 @@ const headingFont = createInterFont({
   face: {
     700: { normal: 'InterBold' },
   },
-})
+});
 
 const bodyFont = createInterFont(
   {
@@ -65,7 +66,22 @@ const bodyFont = createInterFont(
     sizeSize: (size) => Math.round(size * 1.1),
     sizeLineHeight: (size) => Math.round(size * 1.1 + (size > 20 ? 10 : 10)),
   }
-)
+);
+
+const astrologicalFont = createInterFont({
+  size: {
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 20,
+    5: 24,
+    6: 32,
+    7: 40,
+  },
+  face: {
+    normal: { normal: 'AstroGlyphs' }, // We'll need to add this font to the assets
+  },
+});
 
 const config = createTamagui({
   defaultTheme: 'light',
@@ -75,35 +91,9 @@ const config = createTamagui({
   fonts: {
     heading: headingFont,
     body: bodyFont,
+    astrological: astrologicalFont,
   },
-  themes: {
-    light: {
-      background: '#FFFFFF',
-      backgroundHover: '#BAF2BB',
-      backgroundPress: '#BAF2BB',
-      backgroundFocus: '#BAF2BB',
-      color: '#000000',
-      colorHover: '#757575',
-      borderColor: 'rgba(0,0,0,0.1)',
-      borderColorHover: '#BAF2BB',
-      borderColorFocus: '#BAF2BB',
-      borderColorPress: '#BAF2BB',
-      placeholderColor: '#ADADAD',
-    },
-    dark: {
-      background: '#000000',
-      backgroundHover: '#BAF2BB',
-      backgroundPress: '#BAF2BB',
-      backgroundFocus: '#BAF2BB',
-      color: '#FFFFFF',
-      colorHover: '#ADADAD',
-      borderColor: 'rgba(255,255,255,0.1)',
-      borderColorHover: '#BAF2BB',
-      borderColorFocus: '#BAF2BB',
-      borderColorPress: '#BAF2BB',
-      placeholderColor: '#757575',
-    },
-  },
+  themes,
   tokens,
   animations,
   media: createMedia({
@@ -122,12 +112,12 @@ const config = createTamagui({
     hoverNone: { hover: 'none' },
     pointerCoarse: { pointer: 'coarse' },
   }),
-})
+});
 
-export type AppConfig = typeof config
+export type AppConfig = typeof config;
 
 declare module 'tamagui' {
   interface TamaguiCustomConfig extends AppConfig {}
 }
 
-export default config
+export default config;

@@ -1,96 +1,135 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
-import {
-  YStack,
-  Text,
-  H1,
-  Form,
-  styled,
-} from 'tamagui';
+import { View } from 'react-native';
+import { YStack, Text, Button, Input, Label } from 'tamagui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../types/navigation';
-import { supabase } from '../lib/supabase';
-import { StyledInput, StyledButton } from '../theme/components';
+import { AuthStackParamList } from '../navigation/AuthNavigator';
+import { useAuth } from '../hooks/useAuth';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
-const Container = styled(YStack, {
-  flex: 1,
-  backgroundColor: '$background',
-  padding: '$4',
-});
-
-const Title = styled(H1, {
-  color: '$text',
-  marginBottom: '$2',
-  fontFamily: '$heading',
-});
-
-const Description = styled(Text, {
-  color: '$textSecondary',
-  marginBottom: '$6',
-  fontFamily: '$body',
-});
-
 export default function ForgotPasswordScreen({ navigation }: Props) {
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleResetPassword = async () => {
     if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
+      setError('Please enter your email address');
       return;
     }
 
     try {
       setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'bloom://reset-password',
-      });
-
-      if (error) throw error;
-
-      Alert.alert(
-        'Success',
-        'Check your email for password reset instructions',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('SignIn'),
-          },
-        ]
-      );
-    } catch (error) {
-      Alert.alert('Error', (error as Error).message);
+      setError(null);
+      await resetPassword(email);
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email');
     } finally {
       setLoading(false);
     }
   };
 
+  if (success) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <YStack space="$4" padding="$4" width="100%" maxWidth={400}>
+          <Text
+            fontFamily="$heading"
+            fontSize="$6"
+            textAlign="center"
+            marginBottom="$2"
+          >
+            Check Your Email
+          </Text>
+
+          <Text
+            fontFamily="$body"
+            fontSize="$4"
+            textAlign="center"
+            color="$textSecondary"
+            marginBottom="$6"
+          >
+            We've sent password reset instructions to your email address.
+          </Text>
+
+          <Button
+            backgroundColor="$primary"
+            color="$background"
+            size="$5"
+            onPress={() => navigation.navigate('SignIn')}
+          >
+            Return to Sign In
+          </Button>
+        </YStack>
+      </View>
+    );
+  }
+
   return (
-    <Container>
-      <Title>Reset Password</Title>
-      <Description>
-        Enter your email address and we'll send you instructions to reset your password.
-      </Description>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <YStack space="$4" padding="$4" width="100%" maxWidth={400}>
+        <Text
+          fontFamily="$heading"
+          fontSize="$6"
+          textAlign="center"
+          marginBottom="$2"
+        >
+          Reset Password
+        </Text>
 
-      <Form space="$4">
-        <StyledInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-        />
+        <Text
+          fontFamily="$body"
+          fontSize="$4"
+          textAlign="center"
+          color="$textSecondary"
+          marginBottom="$6"
+        >
+          Enter your email address and we'll send you instructions to reset your password.
+        </Text>
 
-        <StyledButton
+        <YStack space="$2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </YStack>
+
+        {error && (
+          <Text
+            color="$red10"
+            textAlign="center"
+            marginTop="$2"
+          >
+            {error}
+          </Text>
+        )}
+
+        <Button
+          marginTop="$4"
+          backgroundColor="$primary"
+          color="$background"
+          size="$5"
           onPress={handleResetPassword}
           disabled={loading}
         >
           {loading ? 'Sending...' : 'Send Reset Instructions'}
-        </StyledButton>
-      </Form>
-    </Container>
+        </Button>
+
+        <Button
+          variant="outlined"
+          size="$5"
+          onPress={() => navigation.goBack()}
+        >
+          Back to Sign In
+        </Button>
+      </YStack>
+    </View>
   );
 }

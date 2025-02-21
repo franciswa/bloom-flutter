@@ -1,35 +1,6 @@
-import { NavigatorScreenParams } from '@react-navigation/native';
-
-export type TabParamList = {
-  Matches: undefined;
-  Messages: undefined;
-  Dates: undefined;
-  Profile: undefined;
-  Settings: undefined;
-  Notifications: undefined;
-};
-
-export type RootStackParamList = {
-  Auth: undefined;
-  SignIn: undefined;
-  SignUp: undefined;
-  MainTabs: NavigatorScreenParams<TabParamList>;
-  Chat: {
-    matchId: string;
-    matchName: string;
-    matchPhoto: string;
-  };
-  Match: {
-    matchId: string;
-  };
-  Questionnaire: {
-    type: 'personality' | 'lifestyle' | 'values';
-  };
-  Date: {
-    matchId: string;
-    dateId?: string;
-  };
-};
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -37,13 +8,48 @@ export type AuthStackParamList = {
   SignUp: undefined;
   ForgotPassword: undefined;
   ResetPassword: {
+    email: string;
     token: string;
   };
 };
 
-// Helper type for useNavigation hook
-declare global {
-  namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
-  }
-}
+export type MessagesStackParamList = {
+  MessagesList: undefined;
+  Chat: {
+    userId: string;
+    name: string;
+  };
+};
+
+export type MainTabParamList = {
+  Matches: undefined;
+  Messages: NavigatorScreenParams<MessagesStackParamList>;
+  Chart: undefined;
+  Notifications: undefined;
+  Settings: undefined;
+};
+
+export type RootStackParamList = {
+  Auth: undefined;
+  Main: NavigatorScreenParams<MainTabParamList>;
+};
+
+export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<
+  AuthStackParamList,
+  T
+>;
+
+export type MessagesScreenProps<T extends keyof MessagesStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<MessagesStackParamList, T>,
+  BottomTabScreenProps<MainTabParamList>
+>;
+
+export type MainScreenProps<T extends keyof MainTabParamList> = BottomTabScreenProps<
+  MainTabParamList,
+  T
+>;
+
+export type RootScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
+  RootStackParamList,
+  T
+>;

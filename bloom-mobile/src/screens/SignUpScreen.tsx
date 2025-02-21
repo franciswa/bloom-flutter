@@ -1,208 +1,125 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
-import { useAuth } from '../hooks/useAuth';
+import { View } from 'react-native';
+import { YStack, Text, Button, Input, Label } from 'tamagui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
-import {
-  Container,
-  Title,
-  StyledInput,
-  StyledButton,
-  StepIndicator,
-  StepDot,
-  FormContainer,
-  ButtonContainer,
-} from '../theme/components';
+import { useAuth } from '../hooks/useAuth';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
-type Step = 'credentials' | 'birth-info' | 'location';
-
 export default function SignUpScreen({ navigation }: Props) {
-  const { signUp, loading } = useAuth();
-  const [currentStep, setCurrentStep] = useState<Step>('credentials');
-  
-  // Form state
+  const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('');
-  const [city, setCity] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleNext = () => {
-    if (currentStep === 'credentials') {
-      if (!email || !password || !confirmPassword) {
-        Alert.alert('Error', 'Please fill in all fields');
-        return;
-      }
-      if (password !== confirmPassword) {
-        Alert.alert('Error', 'Passwords do not match');
-        return;
-      }
-      setCurrentStep('birth-info');
-    } else if (currentStep === 'birth-info') {
-      if (!birthDate || !birthTime) {
-        Alert.alert('Error', 'Please fill in all fields');
-        return;
-      }
-      setCurrentStep('location');
+  const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
     }
-  };
 
-  const handleBack = () => {
-    if (currentStep === 'birth-info') {
-      setCurrentStep('credentials');
-    } else if (currentStep === 'location') {
-      setCurrentStep('birth-info');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
     }
-  };
 
-  const handleSubmit = async () => {
-    if (!city || !latitude || !longitude) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
       return;
     }
 
     try {
-      await signUp({
-        email,
-        password,
-        birthDate,
-        birthTime,
-        birthLocation: {
-          city,
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude),
-        },
-      });
+      setLoading(true);
+      setError(null);
+      await signUp(email, password);
+      // Note: User will need to verify their email before signing in
+      navigation.navigate('SignIn');
     } catch (err) {
-      Alert.alert('Error', err instanceof Error ? err.message : 'Failed to sign up');
+      setError(err instanceof Error ? err.message : 'Failed to sign up');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container>
-      <Title textAlign="center">Create Account</Title>
-      <StepIndicator>
-        <StepDot active={currentStep === 'credentials'} />
-        <StepDot active={currentStep === 'birth-info'} />
-        <StepDot active={currentStep === 'location'} />
-      </StepIndicator>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <YStack space="$4" padding="$4" width="100%" maxWidth={400}>
+        <Text
+          fontFamily="$heading"
+          fontSize="$8"
+          textAlign="center"
+          marginBottom="$4"
+        >
+          Create Account
+        </Text>
 
-      {currentStep === 'credentials' && (
-        <FormContainer>
-          <StyledInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
+        <YStack space="$2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
             autoCapitalize="none"
             keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
           />
-          <StyledInput
-            placeholder="Password"
+        </YStack>
+
+        <YStack space="$2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            secureTextEntry
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
           />
-          <StyledInput
-            placeholder="Confirm Password"
+        </YStack>
+
+        <YStack space="$2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            secureTextEntry
           />
-          <ButtonContainer>
-            <StyledButton
-              flex={1}
-              variant="outline"
-              disabled={true}
-              opacity={0}
-            >
-              Back
-            </StyledButton>
-            <StyledButton
-              flex={1}
-              onPress={handleNext}
-              disabled={loading}
-            >
-              Next
-            </StyledButton>
-          </ButtonContainer>
-        </FormContainer>
-      )}
+        </YStack>
 
-      {currentStep === 'birth-info' && (
-        <FormContainer>
-          <StyledInput
-            placeholder="Birth Date (YYYY-MM-DD)"
-            value={birthDate}
-            onChangeText={setBirthDate}
-          />
-          <StyledInput
-            placeholder="Birth Time (HH:mm)"
-            value={birthTime}
-            onChangeText={setBirthTime}
-          />
-          <ButtonContainer>
-            <StyledButton
-              flex={1}
-              variant="outline"
-              onPress={handleBack}
-              disabled={loading}
-            >
-              Back
-            </StyledButton>
-            <StyledButton
-              flex={1}
-              onPress={handleNext}
-              disabled={loading}
-            >
-              Next
-            </StyledButton>
-          </ButtonContainer>
-        </FormContainer>
-      )}
+        {error && (
+          <Text
+            color="$red10"
+            textAlign="center"
+            marginTop="$2"
+          >
+            {error}
+          </Text>
+        )}
 
-      {currentStep === 'location' && (
-        <FormContainer>
-          <StyledInput
-            placeholder="City"
-            value={city}
-            onChangeText={setCity}
-          />
-          <StyledInput
-            placeholder="Latitude"
-            value={latitude}
-            onChangeText={setLatitude}
-            keyboardType="numeric"
-          />
-          <StyledInput
-            placeholder="Longitude"
-            value={longitude}
-            onChangeText={setLongitude}
-            keyboardType="numeric"
-          />
-          <ButtonContainer>
-            <StyledButton
-              flex={1}
-              variant="outline"
-              onPress={handleBack}
-              disabled={loading}
+        <Button
+          marginTop="$4"
+          backgroundColor="$primary"
+          color="$background"
+          size="$5"
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          {loading ? 'Creating account...' : 'Create Account'}
+        </Button>
+
+        <YStack alignItems="center" marginTop="$4">
+          <Text color="$textSecondary">
+            Already have an account?{' '}
+            <Text
+              color="$primary"
+              onPress={() => navigation.navigate('SignIn')}
             >
-              Back
-            </StyledButton>
-            <StyledButton
-              flex={1}
-              onPress={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? 'Creating Account...' : 'Sign Up'}
-            </StyledButton>
-          </ButtonContainer>
-        </FormContainer>
-      )}
-    </Container>
+              Sign In
+            </Text>
+          </Text>
+        </YStack>
+      </YStack>
+    </View>
   );
 }

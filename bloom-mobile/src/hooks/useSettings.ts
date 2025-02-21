@@ -1,17 +1,38 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { UserSettings } from '../types/database';
 
-interface UseSettingsResult {
-  settings: UserSettings | null;
-  loading: boolean;
-  error: string | null;
-  saveSettings: (settings: Partial<UserSettings>) => Promise<void>;
-  refreshSettings: () => Promise<void>;
-}
+const defaultSettings: UserSettings = {
+  id: '',
+  user_id: '',
+  theme: 'system',
+  language: 'en',
+  push_notifications: {
+    matches: true,
+    messages: true,
+    likes: true,
+    system: true,
+  },
+  email_notifications: {
+    matches: true,
+    messages: true,
+    likes: true,
+    system: true,
+    marketing: false,
+  },
+  privacy: {
+    show_online_status: true,
+    show_last_active: true,
+    show_profile_to: 'everyone',
+  },
+  distance_unit: 'mi',
+  time_format: '12h',
+  date_format: 'MM/DD/YYYY',
+  updated_at: new Date().toISOString(),
+};
 
-export function useSettings(userId: string): UseSettingsResult {
-  const [settings, setSettings] = useState<UserSettings | null>(null);
+export function useSettings(userId: string) {
+  const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,50 +41,14 @@ export function useSettings(userId: string): UseSettingsResult {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      const { data, error: err } = await supabase
         .from('user_settings')
         .select('*')
         .eq('user_id', userId)
         .single();
 
-      if (fetchError) throw fetchError;
-
-      if (!data) {
-        // Create default settings if none exist
-        const defaultSettings: UserSettings = {
-          id: crypto.randomUUID(),
-          user_id: userId,
-          theme_mode: 'light',
-          dark_mode: false,
-          notifications_enabled: true,
-          notification_preferences: {
-            matches: true,
-            messages: true,
-            date_reminders: true,
-          },
-          distance_range: 50,
-          age_range_min: 18,
-          age_range_max: 45,
-          show_zodiac: true,
-          show_birth_time: true,
-          privacy_settings: {
-            show_location: true,
-            show_age: true,
-            show_profile_photo: true,
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-
-        const { error: insertError } = await supabase
-          .from('user_settings')
-          .insert(defaultSettings);
-
-        if (insertError) throw insertError;
-        setSettings(defaultSettings);
-      } else {
-        setSettings(data);
-      }
+      if (err) throw err;
+      setSettings(data || defaultSettings);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load settings');
     } finally {
@@ -71,68 +56,32 @@ export function useSettings(userId: string): UseSettingsResult {
     }
   }, [userId]);
 
-  const saveSettings = async (newSettings: Partial<UserSettings>) => {
-    if (!settings) return;
-
+  const updateSettings = useCallback(async (updates: Partial<UserSettings>) => {
     try {
       setError(null);
-      const updatedSettings = {
-        ...settings,
-        ...newSettings,
-        updated_at: new Date().toISOString(),
-      };
 
-      const { error: updateError } = await supabase
+      const { error: err } = await supabase
         .from('user_settings')
-        .update(updatedSettings)
-        .eq('id', settings.id);
+        .upsert({
+          ...settings,
+          ...updates,
+          user_id: userId,
+          updated_at: new Date().toISOString(),
+        });
 
-      if (updateError) throw updateError;
-      setSettings(updatedSettings);
+      if (err) throw err;
+      setSettings(prev => ({ ...prev, ...updates }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings');
+      setError(err instanceof Error ? err.message : 'Failed to update settings');
       throw err;
     }
-  };
-
-  // Subscribe to settings changes
-  useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`settings:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_settings',
-          filter: `user_id=eq.${userId}`,
-        },
-        async (payload) => {
-          if (payload.eventType === 'DELETE') {
-            setSettings(null);
-          } else {
-            const newSettings = payload.new as UserSettings;
-            setSettings(newSettings);
-          }
-        }
-      )
-      .subscribe();
-
-    // Initial load
-    loadSettings();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [userId, loadSettings]);
+  }, [userId, settings]);
 
   return {
     settings,
     loading,
     error,
-    saveSettings,
-    refreshSettings: loadSettings,
+    loadSettings,
+    updateSettings,
   };
 }

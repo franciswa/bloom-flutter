@@ -4,33 +4,33 @@ module.exports = function (api) {
     presets: ['babel-preset-expo'],
     plugins: [
       [
-        '@babel/plugin-proposal-class-properties',
+        'module-resolver',
         {
-          loose: true,
+          root: ['./src'],
+          extensions: [
+            '.ios.ts',
+            '.android.ts',
+            '.ts',
+            '.ios.tsx',
+            '.android.tsx',
+            '.tsx',
+            '.jsx',
+            '.js',
+            '.json',
+          ],
+          alias: {
+            '@': './src',
+          },
         },
       ],
-      [
-        '@babel/plugin-proposal-private-methods',
-        {
-          loose: true,
-        },
-      ],
-      [
-        'transform-inline-environment-variables',
-        {
-          include: ['TAMAGUI_TARGET', 'EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPABASE_ANON_KEY'],
-        },
-      ],
+      'react-native-reanimated/plugin',
       [
         '@tamagui/babel-plugin',
         {
           components: ['tamagui'],
           config: './tamagui.config.ts',
-          logTimings: true,
-          disableExtraction: process.env.NODE_ENV === 'development',
         },
       ],
-      'react-native-reanimated/plugin',
     ],
   };
 };

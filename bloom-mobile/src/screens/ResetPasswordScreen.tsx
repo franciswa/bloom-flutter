@@ -1,126 +1,161 @@
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
-import {
-  YStack,
-  Text,
-  H1,
-  Form,
-  styled,
-} from 'tamagui';
+import { View } from 'react-native';
+import { YStack, Text, Button, Input, Label } from 'tamagui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../types/navigation';
+import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { supabase } from '../lib/supabase';
-import { StyledInput, StyledButton } from '../theme/components';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
-const Container = styled(YStack, {
-  flex: 1,
-  backgroundColor: '$background',
-  padding: '$4',
-});
-
-const Title = styled(H1, {
-  color: '$text',
-  marginBottom: '$2',
-  fontFamily: '$heading',
-});
-
-const Description = styled(Text, {
-  color: '$textSecondary',
-  marginBottom: '$6',
-  fontFamily: '$body',
-});
-
-const ErrorText = styled(Text, {
-  color: '$error',
-  marginTop: '$2',
-  fontFamily: '$body',
-});
-
 export default function ResetPasswordScreen({ navigation, route }: Props) {
+  const { email, token } = route.params;
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const validatePassword = () => {
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return false;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return false;
-    }
-    setError('');
-    return true;
-  };
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleResetPassword = async () => {
-    if (!validatePassword()) return;
+    if (!password || !confirmPassword) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
 
     try {
       setLoading(true);
-      const { error } = await supabase.auth.updateUser({
+      setError(null);
+
+      const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      Alert.alert(
-        'Success',
-        'Your password has been reset successfully',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('SignIn'),
-          },
-        ]
-      );
-    } catch (error) {
-      Alert.alert('Error', (error as Error).message);
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reset password');
     } finally {
       setLoading(false);
     }
   };
 
+  if (success) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <YStack space="$4" padding="$4" width="100%" maxWidth={400}>
+          <Text
+            fontFamily="$heading"
+            fontSize="$6"
+            textAlign="center"
+            marginBottom="$2"
+          >
+            Password Reset Complete
+          </Text>
+
+          <Text
+            fontFamily="$body"
+            fontSize="$4"
+            textAlign="center"
+            color="$textSecondary"
+            marginBottom="$6"
+          >
+            Your password has been successfully reset. You can now sign in with your new password.
+          </Text>
+
+          <Button
+            backgroundColor="$primary"
+            color="$background"
+            size="$5"
+            onPress={() => navigation.navigate('SignIn')}
+          >
+            Sign In
+          </Button>
+        </YStack>
+      </View>
+    );
+  }
+
   return (
-    <Container>
-      <Title>Set New Password</Title>
-      <Description>
-        Please enter your new password below.
-      </Description>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <YStack space="$4" padding="$4" width="100%" maxWidth={400}>
+        <Text
+          fontFamily="$heading"
+          fontSize="$6"
+          textAlign="center"
+          marginBottom="$2"
+        >
+          Reset Password
+        </Text>
 
-      <Form space="$4">
-        <StyledInput
-          placeholder="New Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          autoComplete="password-new"
-        />
+        <Text
+          fontFamily="$body"
+          fontSize="$4"
+          textAlign="center"
+          color="$textSecondary"
+          marginBottom="$6"
+        >
+          Enter your new password below.
+        </Text>
 
-        <StyledInput
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          autoComplete="password-new"
-        />
+        <YStack space="$2">
+          <Label htmlFor="password">New Password</Label>
+          <Input
+            id="password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </YStack>
 
-        {error ? <ErrorText>{error}</ErrorText> : null}
+        <YStack space="$2">
+          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+          <Input
+            id="confirmPassword"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+        </YStack>
 
-        <StyledButton
+        {error && (
+          <Text
+            color="$red10"
+            textAlign="center"
+            marginTop="$2"
+          >
+            {error}
+          </Text>
+        )}
+
+        <Button
+          marginTop="$4"
+          backgroundColor="$primary"
+          color="$background"
+          size="$5"
           onPress={handleResetPassword}
           disabled={loading}
-          marginTop="$4"
         >
-          {loading ? 'Updating...' : 'Update Password'}
-        </StyledButton>
-      </Form>
-    </Container>
+          {loading ? 'Resetting...' : 'Reset Password'}
+        </Button>
+
+        <Button
+          variant="outlined"
+          size="$5"
+          onPress={() => navigation.navigate('SignIn')}
+        >
+          Cancel
+        </Button>
+      </YStack>
+    </View>
   );
 }

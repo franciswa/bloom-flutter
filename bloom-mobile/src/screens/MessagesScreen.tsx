@@ -1,163 +1,138 @@
-import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, FlatList, Image } from 'react-native';
+import { YStack, Text, Card, XStack } from 'tamagui';
+import { MessagesScreenProps } from '../types/navigation';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { TabParamList, RootStackParamList } from '../navigation/MainNavigator';
-import { CompositeScreenProps } from '@react-navigation/native';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { Avatar as TamaguiAvatar } from 'tamagui';
-import {
-  Container,
-  Title,
-  BodyText,
-  StyledCard,
-  Badge,
-  BadgeText,
-  Row,
-  XStack,
-  YStack,
-} from '../theme/components';
 
-type Props = CompositeScreenProps<
-  BottomTabScreenProps<TabParamList, 'Messages'>,
-  NativeStackScreenProps<RootStackParamList>
->;
+type Props = MessagesScreenProps<'MessagesList'>;
 
 interface Message {
   id: string;
-  content: string;
+  userId: string;
+  name: string;
+  photoUrl: string;
+  lastMessage: string;
   timestamp: string;
-  senderId: string;
-  read: boolean;
+  unread: boolean;
 }
 
-interface Conversation {
-  id: string;
-  matchId: string;
-  matchName: string;
-  matchPhoto: string;
-  lastMessage: Message;
-  unreadCount: number;
-}
-
-// Temporary mock data
-const mockConversations: Conversation[] = [
+// Temporary sample data
+const sampleMessages: Message[] = [
   {
-    id: '1',
-    matchId: '1',
-    matchName: 'Sarah',
-    matchPhoto: 'https://example.com/profile1.jpg',
-    lastMessage: {
-      id: 'm1',
-      content: 'I love how our moon signs are compatible! ✨',
-      timestamp: '2024-02-19T06:30:00Z',
-      senderId: '1',
-      read: false,
-    },
-    unreadCount: 2,
+    id: "1",
+    userId: "user1",
+    name: "Sarah",
+    photoUrl: "https://picsum.photos/200",
+    lastMessage: "Hey, how are you?",
+    timestamp: "2 min ago",
+    unread: true,
   },
   {
-    id: '2',
-    matchId: '2',
-    matchName: 'Emma',
-    matchPhoto: 'https://example.com/profile2.jpg',
-    lastMessage: {
-      id: 'm2',
-      content: 'Would you like to get coffee sometime?',
-      timestamp: '2024-02-18T22:15:00Z',
-      senderId: 'current-user',
-      read: true,
-    },
-    unreadCount: 0,
+    id: "2",
+    userId: "user2",
+    name: "Emma",
+    photoUrl: "https://picsum.photos/201",
+    lastMessage: "Would you like to meet for coffee?",
+    timestamp: "1 hour ago",
+    unread: false,
+  },
+  {
+    id: "3",
+    userId: "user3",
+    name: "Olivia",
+    photoUrl: "https://picsum.photos/202",
+    lastMessage: "That sounds great!",
+    timestamp: "2 hours ago",
+    unread: false,
   },
 ];
-
-function formatMessageTime(timestamp: string): string {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-  if (diffInHours < 24) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else if (diffInHours < 48) {
-    return 'Yesterday';
-  } else {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  }
-}
 
 export default function MessagesScreen({ navigation }: Props) {
   const { user } = useAuth();
   const { profile } = useProfile(user?.id || '');
-  const [conversations] = useState<Conversation[]>(mockConversations);
 
-  const handleConversationPress = (conversation: Conversation) => {
-    navigation.navigate('Chat', {
-      matchId: conversation.matchId,
-      matchName: conversation.matchName,
-      matchPhoto: conversation.matchPhoto,
-    });
-  };
+  const renderMessage = ({ item }: { item: Message }) => (
+    <Card
+      bordered
+      marginHorizontal="$4"
+      marginVertical="$2"
+      padding="$4"
+      animation="bouncy"
+      pressStyle={{ scale: 0.97 }}
+      onPress={() => {
+        navigation.navigate('Chat', {
+          userId: item.userId,
+          name: item.name,
+        });
+      }}
+    >
+      <XStack space="$4">
+        <Image
+          source={{ uri: item.photoUrl }}
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+          }}
+        />
+        <YStack flex={1} justifyContent="center" space="$1">
+          <XStack justifyContent="space-between" alignItems="center">
+            <Text fontFamily="$heading" fontSize="$5">
+              {item.name}
+            </Text>
+            <Text color="$textSecondary" fontSize="$2">
+              {item.timestamp}
+            </Text>
+          </XStack>
+          <XStack space="$2" alignItems="center">
+            <Text
+              color={item.unread ? '$text' : '$textSecondary'}
+              fontSize="$3"
+              fontWeight={item.unread ? 'bold' : 'normal'}
+              numberOfLines={1}
+              flex={1}
+            >
+              {item.lastMessage}
+            </Text>
+            {item.unread && (
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: '$primary',
+                }}
+              />
+            )}
+          </XStack>
+        </YStack>
+      </XStack>
+    </Card>
+  );
+
+  if (!profile) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
-    <Container>
-      <Title marginBottom="$4">Messages</Title>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {conversations.map((conversation) => (
-          <TouchableOpacity
-            key={conversation.id}
-            onPress={() => handleConversationPress(conversation)}
-            activeOpacity={0.7}
-          >
-            <StyledCard marginBottom="$3" interactive>
-              <Row>
-                <TamaguiAvatar circular size="$6">
-                  <TamaguiAvatar.Image src={conversation.matchPhoto} />
-                  <TamaguiAvatar.Fallback backgroundColor="$secondary" />
-                </TamaguiAvatar>
-                
-                <YStack flex={1} marginLeft="$3">
-                  <XStack justifyContent="space-between" alignItems="center">
-                    <BodyText
-                      fontSize="$4"
-                      fontWeight={conversation.unreadCount > 0 ? '600' : '400'}
-                    >
-                      {conversation.matchName}
-                    </BodyText>
-                    <BodyText
-                      fontSize="$2"
-                      color="$textSubtle"
-                    >
-                      {formatMessageTime(conversation.lastMessage.timestamp)}
-                    </BodyText>
-                  </XStack>
-                  
-                  <XStack alignItems="center" marginTop="$1">
-                    <BodyText
-                      flex={1}
-                      numberOfLines={1}
-                      fontWeight={conversation.unreadCount > 0 ? '600' : '400'}
-                      color={conversation.unreadCount > 0 ? '$text' : '$textSecondary'}
-                    >
-                      {conversation.lastMessage.senderId === user?.id ? 'You: ' : ''}
-                      {conversation.lastMessage.content}
-                    </BodyText>
-                    
-                    {conversation.unreadCount > 0 && (
-                      <Badge>
-                        <BadgeText>
-                          {conversation.unreadCount}
-                        </BadgeText>
-                      </Badge>
-                    )}
-                  </XStack>
-                </YStack>
-              </Row>
-            </StyledCard>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </Container>
+    <View style={{ flex: 1 }}>
+      <YStack padding="$4" space="$4">
+        <Text fontFamily="$heading" fontSize="$6">
+          Messages
+        </Text>
+      </YStack>
+
+      <FlatList
+        data={sampleMessages}
+        renderItem={renderMessage}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
+    </View>
   );
 }
