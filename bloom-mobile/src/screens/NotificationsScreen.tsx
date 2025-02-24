@@ -9,7 +9,7 @@ import { Button } from '../components/Button';
 
 type Props = MainScreenProps<'Notifications'>;
 
-export default function NotificationsScreen({ navigation }: Props) {
+export function NotificationsScreen({ navigation }: Props) {
   const {
     notifications,
     loading,

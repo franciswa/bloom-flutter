@@ -5,12 +5,13 @@ import MatchesScreen from '../screens/MatchesScreen';
 import MessagesScreen from '../screens/MessagesScreen';
 import ChatScreen from '../screens/ChatScreen';
 import { NatalChartScreen } from '../screens/NatalChartScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { useProfile } from '../hooks/useProfile';
 import { useAuth } from '../hooks/useAuth';
 import { ChartData, Planet, ZodiacSign, AspectType } from '../types/chart';
-import { MainTabParamList, MessagesStackParamList } from '../types/navigation';
+import { MainTabParamList, MessagesStackParamList, DateNightStackParamList } from '../types/navigation';
+import { DateNightNavigator } from './DateNightNavigator';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const MessagesStackNavigator = createNativeStackNavigator<MessagesStackParamList>();
@@ -36,7 +37,7 @@ const MessagesStack = () => {
 
 export function MainNavigator() {
   const { user } = useAuth();
-  const { profile } = useProfile(user?.id || '');
+  const { profile } = useProfile();
 
   // Sample chart data - in production this would come from the profile
   const sampleChartData: ChartData = {
@@ -148,6 +149,14 @@ export function MainNavigator() {
         component={MessagesStack}
         options={{
           title: 'Messages',
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="DateNight"
+        component={DateNightNavigator}
+        options={{
+          title: 'Date Night',
           headerShown: false,
         }}
       />

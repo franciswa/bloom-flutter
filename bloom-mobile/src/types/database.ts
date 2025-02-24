@@ -1,3 +1,76 @@
+import { ZodiacSign } from './chart';
+import { DateType } from '../services/datePreferences';
+
+export interface Database {
+  public: {
+    Tables: {
+      profiles: {
+        Row: Profile;
+        Insert: Omit<Profile, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      date_preferences: {
+        Row: DatePreference;
+        Insert: Omit<DatePreference, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<DatePreference, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      matches: {
+        Row: Match;
+        Insert: Omit<Match, 'id' | 'created_at'>;
+        Update: Partial<Omit<Match, 'id' | 'created_at'>>;
+      };
+      messages: {
+        Row: Message;
+        Insert: Omit<Message, 'id' | 'created_at'>;
+        Update: Partial<Omit<Message, 'id' | 'created_at'>>;
+      };
+      conversations: {
+        Row: Conversation;
+        Insert: Omit<Conversation, 'id' | 'created_at'>;
+        Update: Partial<Omit<Conversation, 'id' | 'created_at'>>;
+      };
+      notifications: {
+        Row: Notification;
+        Insert: Omit<Notification, 'id' | 'created_at'>;
+        Update: Partial<Omit<Notification, 'id' | 'created_at'>>;
+      };
+      push_tokens: {
+        Row: PushToken;
+        Insert: Omit<PushToken, 'id' | 'created_at'>;
+        Update: Partial<Omit<PushToken, 'id' | 'created_at'>>;
+      };
+      user_settings: {
+        Row: UserSettings;
+        Insert: Omit<UserSettings, 'id'>;
+        Update: Partial<Omit<UserSettings, 'id'>>;
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      exec_sql: {
+        Args: { sql: string };
+        Returns: unknown;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+  };
+}
+
+export interface DatePreference {
+  id: string;
+  user_id: string;
+  desired_zodiac: ZodiacSign;
+  date_type: DateType;
+  preferred_date: string;
+  status: 'pending' | 'matching' | 'matched' | 'cancelled' | 'completed';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Profile {
   id: string;
   created_at: string;
@@ -61,11 +134,20 @@ export interface Match {
 
 export interface Message {
   id: string;
-  created_at: string;
-  conversation_id: string;
+  match_id: string;
   sender_id: string;
   content: string;
-  read_at: string | null;
+  is_system_message: boolean;
+  read: boolean;
+  edited_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TypingStatus {
+  userId: string;
+  isTyping: boolean;
+  matchId: string;
 }
 
 export interface Conversation {

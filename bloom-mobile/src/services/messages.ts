@@ -122,3 +122,71 @@ export async function getUnreadMessageCount(userId: string): Promise<number> {
     throw new Error(err instanceof Error ? err.message : 'Failed to get unread message count');
   }
 }
+
+// Typing indicator functions
+export async function setTypingStatus(matchId: string, userId: string, isTyping: boolean): Promise<void> {
+  try {
+    const channel = supabase.channel(`typing:${matchId}`);
+    await channel.subscribe();
+    
+    await channel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { userId, isTyping }
+    });
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : 'Failed to update typing status');
+  }
+}
+
+export function subscribeToTypingStatus(
+  matchId: string, 
+  onTypingChange: (userId: string, isTyping: boolean) => void
+): () => void {
+  const channel = supabase
+    .channel(`typing:${matchId}`)
+    .on('broadcast', { event: 'typing' }, (payload) => {
+      const { userId, isTyping } = payload.payload;
+      onTypingChange(userId, isTyping);
+    })
+    .subscribe();
+
+  return () => {
+    channel.unsubscribe();
+  };
+}
+
+// Message editing functions
+export async function editMessage(messageId: string, newContent: string): Promise<Message> {
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      .update({ 
+        content: newContent,
+        edited_at: new Date().toISOString()
+      })
+      .eq('id', messageId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    if (!data) throw new Error('Failed to edit message');
+
+    return data;
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : 'Failed to edit message');
+  }
+}
+
+export async function deleteMessage(messageId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (error) throw error;
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : 'Failed to delete message');
+  }
+}

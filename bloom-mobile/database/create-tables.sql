@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS public.messages (
     content TEXT NOT NULL,
     is_system_message BOOLEAN DEFAULT false,
     read BOOLEAN DEFAULT false,
+    edited_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );

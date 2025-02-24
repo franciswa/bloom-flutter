@@ -1,6 +1,7 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { ZodiacSign } from './chart';
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -21,9 +22,18 @@ export type MessagesStackParamList = {
   };
 };
 
+export type DateNightStackParamList = {
+  DateNightZodiac: undefined;
+  DateTypeSelection: {
+    selectedSign: ZodiacSign;
+  };
+  DatePreferences: undefined;
+};
+
 export type MainTabParamList = {
   Matches: undefined;
   Messages: NavigatorScreenParams<MessagesStackParamList>;
+  DateNight: NavigatorScreenParams<DateNightStackParamList>;
   Chart: undefined;
   Notifications: undefined;
   Settings: undefined;
@@ -52,4 +62,9 @@ export type MainScreenProps<T extends keyof MainTabParamList> = BottomTabScreenP
 export type RootScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<
   RootStackParamList,
   T
+>;
+
+export type DateNightScreenProps<T extends keyof DateNightStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<DateNightStackParamList, T>,
+  BottomTabScreenProps<MainTabParamList>
 >;
