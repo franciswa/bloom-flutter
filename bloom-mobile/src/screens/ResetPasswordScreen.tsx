@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
-import { YStack, Text, Button, Input, Label } from 'tamagui';
+import { YStack, Text, Button, Input, Label, XStack, Progress } from 'tamagui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { supabase } from '../lib/supabase';
+import { validatePassword, getPasswordStrengthColor } from '../utils/passwordValidator';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
@@ -14,6 +15,26 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | undefined>(undefined);
+  const [passwordValid, setPasswordValid] = useState(false);
+
+  // Check password strength whenever password changes
+  useEffect(() => {
+    if (password) {
+      const result = validatePassword(password);
+      setPasswordStrength(result.strength);
+      setPasswordValid(result.isValid);
+      if (!result.isValid && result.error) {
+        setError(result.error);
+      } else {
+        setError(null);
+      }
+    } else {
+      setPasswordStrength(undefined);
+      setPasswordValid(false);
+      setError(null);
+    }
+  }, [password]);
 
   const handleResetPassword = async () => {
     if (!password || !confirmPassword) {
@@ -26,8 +47,10 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    // Validate password strength
+    const validation = validatePassword(password);
+    if (!validation.isValid) {
+      setError(validation.error || 'Password does not meet requirements');
       return;
     }
 
@@ -115,6 +138,24 @@ export default function ResetPasswordScreen({ navigation, route }: Props) {
             value={password}
             onChangeText={setPassword}
           />
+          {password && (
+            <YStack space="$1" marginTop="$1">
+              <XStack alignItems="center" space="$2">
+                <Progress value={passwordStrength === 'weak' ? 33 : passwordStrength === 'medium' ? 66 : passwordStrength === 'strong' ? 100 : 0} size="$1">
+                  <Progress.Indicator backgroundColor={getPasswordStrengthColor(passwordStrength)} />
+                </Progress>
+                {passwordStrength && (
+                  <Text fontSize="$2" color={getPasswordStrengthColor(passwordStrength)}>
+                    {passwordStrength.charAt(0).toUpperCase() + passwordStrength.slice(1)}
+                  </Text>
+                )}
+              </XStack>
+              <Text fontSize="$2" color="$textSecondary">
+                Password must contain at least 8 characters, including uppercase, lowercase, 
+                numbers, and special characters.
+              </Text>
+            </YStack>
+          )}
         </YStack>
 
         <YStack space="$2">

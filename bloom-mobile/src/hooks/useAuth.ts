@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { authRateLimiter, passwordResetRateLimiter } from '../utils/rateLimiter';
 
 interface AuthContextType {
   user: User | null;
@@ -37,13 +38,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    // Check rate limiter
+    const { limited, remainingAttempts, resetTime } = await authRateLimiter.check();
+    if (limited) {
+      const resetDate = new Date(resetTime);
+      const minutes = Math.ceil((resetTime - Date.now()) / 60000);
+      throw new Error(`Too many login attempts. Please try again in ${minutes} minutes (${resetDate.toLocaleTimeString()}).`);
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      
+      // Successful login, reset rate limiter
+      await authRateLimiter.reset();
+    } catch (error) {
+      // Don't reset on error - this counts toward rate limit
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+    // Check rate limiter
+    const { limited, remainingAttempts, resetTime } = await authRateLimiter.check();
+    if (limited) {
+      const resetDate = new Date(resetTime);
+      const minutes = Math.ceil((resetTime - Date.now()) / 60000);
+      throw new Error(`Too many signup attempts. Please try again in ${minutes} minutes (${resetDate.toLocaleTimeString()}).`);
+    }
+
+    try {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+
+      // Successful signup, reset rate limiter
+      await authRateLimiter.reset();
+    } catch (error) {
+      // Don't reset on error - this counts toward rate limit
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -52,8 +85,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) throw error;
+    // Check rate limiter for password resets
+    const { limited, remainingAttempts, resetTime } = await passwordResetRateLimiter.check();
+    if (limited) {
+      const resetDate = new Date(resetTime);
+      const minutes = Math.ceil((resetTime - Date.now()) / 60000);
+      throw new Error(`Too many password reset attempts. Please try again in ${minutes} minutes (${resetDate.toLocaleTimeString()}).`);
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+    } catch (error) {
+      // Don't reset on error - this counts toward rate limit
+      throw error;
+    }
   };
 
   const value: AuthContextType = {
