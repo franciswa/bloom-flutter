@@ -1,63 +1,111 @@
-const createExpoWebpackConfigAsync = require('@expo/webpack-config');
+// Custom webpack configuration that completely ignores font files
 const path = require('path');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const createExpoWebpackConfigAsync = require('@expo/webpack-config');
 
+// This is a custom webpack configuration that completely ignores font files
 module.exports = async function (env, argv) {
-  const config = await createExpoWebpackConfigAsync(env, argv);
-
-  // Add rules for font and SVG files
-  config.module.rules.push(
+  // Get the default Expo webpack config as a starting point
+  const expoConfig = await createExpoWebpackConfigAsync(
     {
-      test: /\.(woff|woff2|eot|ttf|otf)$/,
-      type: 'asset/resource',
-      generator: {
-        filename: 'static/fonts/[name][ext]'
-      }
+      ...env,
+      // Disable font loading completely
+      disableFontLoading: true,
     },
-    {
-      test: /\.svg$/,
-      use: ['@svgr/webpack']
-    }
+    argv
   );
 
-  // Modify existing rules to handle font and SVG MIME types
-  config.module.rules = config.module.rules.map(rule => {
-    if (rule.oneOf) {
-      rule.oneOf = rule.oneOf.map(oneOf => {
-        if (oneOf.loader && oneOf.loader.includes('file-loader')) {
-          return {
-            ...oneOf,
+  // Create a completely custom webpack config
+  return {
+    mode: expoConfig.mode,
+    entry: expoConfig.entry,
+    output: expoConfig.output,
+    devtool: expoConfig.devtool,
+    devServer: expoConfig.devServer,
+    
+    // Add polyfills for crypto and other Node.js modules
+    resolve: {
+      extensions: ['.web.js', '.web.jsx', '.web.ts', '.web.tsx', '.js', '.jsx', '.ts', '.tsx'],
+      alias: {
+        'react-native$': 'react-native-web',
+        'crypto': require.resolve('crypto-browserify'),
+        'stream': require.resolve('stream-browserify'),
+        'buffer': require.resolve('buffer'),
+        'process': require.resolve('process/browser'),
+        'expo-modules-core/build/uuid/uuid.web': path.resolve(__dirname, 'src/polyfills/uuid.js'),
+        'expo-modules-core/node_modules/uuid': path.resolve(__dirname, 'src/polyfills/uuid.js'),
+      },
+      fallback: {
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
+        buffer: require.resolve('buffer'),
+        process: require.resolve('process/browser'),
+        vm: false,
+      },
+    },
+    
+    module: {
+      rules: [
+        // JavaScript/TypeScript
+        {
+          test: /\.(js|jsx|ts|tsx)$/,
+          exclude: /node_modules/,
+          use: {
+            loader: 'babel-loader',
             options: {
-              ...oneOf.options,
-              name: '[name].[ext]',
-              outputPath: 'static/fonts/'
-            }
-          };
-        }
-        return oneOf;
-      });
-    }
-    return rule;
-  });
-
-  // Add resolve extensions
-  config.resolve.extensions = [
-    '.web.js',
-    '.web.jsx',
-    '.web.ts',
-    '.web.tsx',
-    '.js',
-    '.jsx',
-    '.ts',
-    '.tsx',
-    '.svg'
-  ];
-
-  // Add module aliases and fallbacks
-  config.resolve.alias = {
-    ...config.resolve.alias,
-    'expo-modules-core/build/uuid/uuid.web': path.resolve(__dirname, 'src/polyfills/uuid.js'),
+              presets: ['babel-preset-expo'],
+            },
+          },
+        },
+        // Images
+        {
+          test: /\.(png|jpe?g|gif)$/i,
+          use: ['file-loader'],
+        },
+        // SVG
+        {
+          test: /\.svg$/,
+          use: ['@svgr/webpack'],
+        },
+        // Completely ignore font files
+        {
+          test: /\.(woff|woff2|eot|ttf|otf)$/i,
+          use: 'null-loader',
+        },
+      ],
+    },
+    
+    plugins: [
+      new CleanWebpackPlugin(),
+      new HtmlWebpackPlugin({
+        template: path.resolve(__dirname, 'web/index.html'),
+        filename: 'index.html',
+      }),
+      new webpack.ProvidePlugin({
+        process: 'process/browser',
+        Buffer: ['buffer', 'Buffer'],
+      }),
+      // Define environment variables
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+        '__DEV__': JSON.stringify(process.env.NODE_ENV !== 'production'),
+      }),
+      // Copy static assets
+      new CopyPlugin({
+        patterns: [
+          {
+            from: path.resolve(__dirname, 'assets'),
+            to: 'assets',
+            filter: (resourcePath) => {
+              // Skip font files
+              return !resourcePath.match(/\.(woff|woff2|eot|ttf|otf)$/i);
+            },
+          },
+        ],
+      }),
+    ],
   };
-
-  return config;
 };

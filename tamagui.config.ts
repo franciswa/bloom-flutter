@@ -52,15 +52,15 @@ const headingFont = createInterFont({
     9: -3,
   },
   face: {
-    700: { normal: 'InterBold' },
+    700: { normal: 'Futura, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
   },
 });
 
 const bodyFont = createInterFont(
   {
-    face: {
-      normal: { normal: 'Inter' },
-    },
+  face: {
+    normal: { normal: 'Futura, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
+  },
   },
   {
     sizeSize: (size) => Math.round(size * 1.1),
@@ -68,7 +68,7 @@ const bodyFont = createInterFont(
   }
 );
 
-const astrologicalFont = createInterFont({
+const geistFont = createInterFont({
   size: {
     1: 12,
     2: 14,
@@ -79,7 +79,39 @@ const astrologicalFont = createInterFont({
     7: 40,
   },
   face: {
-    normal: { normal: 'AstroGlyphs' }, // We'll need to add this font to the assets
+    normal: { normal: 'Futura, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
+  },
+});
+
+const openSauceFont = createInterFont({
+  size: {
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 20,
+    5: 24,
+    6: 32,
+    7: 40,
+  },
+  face: {
+    normal: { normal: 'Futura, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
+  },
+});
+
+// Add astrological font using Futura
+const astrologicalFont = createInterFont({
+  size: {
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 20,
+    5: 24,
+    6: 32,
+    7: 40,
+    8: 48,
+  },
+  face: {
+    normal: { normal: 'Futura, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' },
   },
 });
 
@@ -91,6 +123,8 @@ const config = createTamagui({
   fonts: {
     heading: headingFont,
     body: bodyFont,
+    geist: geistFont,
+    openSauce: openSauceFont,
     astrological: astrologicalFont,
   },
   themes,

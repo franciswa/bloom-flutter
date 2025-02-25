@@ -21,8 +21,21 @@
       "package": "com.bloom.mobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "webpack",
+      "build": {
+        "babel": {
+          "include": [
+            "@tamagui/core"
+          ]
+        }
+      }
     },
-    "sdkVersion": "52.0.0"
+    "sdkVersion": "52.0.0",
+    "plugins": [],
+    "extra": {
+      "expoGo": true
+    },
+    "owner": "franciswade"
   }
 }

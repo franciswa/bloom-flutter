@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import {
   YStack,
@@ -11,6 +11,7 @@ import {
   Separator,
   styled,
   ScrollView,
+  Progress,
 } from 'tamagui';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
@@ -152,9 +153,75 @@ const ErrorText = styled(Text, {
   fontFamily: '$body',
 });
 
+const CompatibilitySection = styled(YStack, {
+  marginTop: '$4',
+  marginBottom: '$2',
+});
+
+const CompatibilityTitle = styled(Text, {
+  fontSize: '$3',
+  fontWeight: 'bold',
+  color: '$text',
+  marginBottom: '$2',
+  fontFamily: '$body',
+});
+
+const CompatibilityRow = styled(YStack, {
+  marginBottom: '$2',
+});
+
+const CompatibilityLabel = styled(Text, {
+  fontSize: '$2',
+  color: '$gray10',
+  marginBottom: '$1',
+  fontFamily: '$body',
+});
+
+const CompatibilityBar = styled(Progress, {
+  height: 8,
+  overflow: 'hidden',
+  borderRadius: 4,
+  backgroundColor: '$backgroundHover',
+});
+
+const CompatibilityValue = styled(Text, {
+  fontSize: '$2',
+  color: '$gray10',
+  marginTop: '$1',
+  alignSelf: 'flex-end',
+  fontFamily: '$body',
+});
+
+const ToggleButton = styled(Button, {
+  backgroundColor: 'transparent',
+  color: '$primary',
+  fontFamily: '$body',
+  fontSize: '$2',
+  marginTop: '$2',
+  alignSelf: 'center',
+});
+
 export default function MatchScreen() {
   const navigation = useNavigation<MatchScreenNavigationProp>();
-  const { pendingMatches, activeMatches, loading, error, acceptMatch, rejectMatch, refresh } = useMatches();
+  const { 
+    pendingMatches, 
+    activeMatches, 
+    loading, 
+    error, 
+    acceptMatch, 
+    rejectMatch, 
+    refresh,
+    loadMore,
+    hasMore
+  } = useMatches(20); // Load 20 matches per page
+  const [expandedMatches, setExpandedMatches] = useState<Record<string, boolean>>({});
+
+  const toggleMatchDetails = (matchId: string) => {
+    setExpandedMatches(prev => ({
+      ...prev,
+      [matchId]: !prev[matchId]
+    }));
+  };
 
   const handleAcceptMatch = async (matchId: string) => {
     Alert.alert(
@@ -167,7 +234,19 @@ export default function MatchScreen() {
           onPress: async () => {
             try {
               await acceptMatch(matchId);
-              navigation.navigate('Chat', { matchId });
+              const match = pendingMatches.find(m => m.id === matchId);
+              if (match) {
+                navigation.navigate('Main', { 
+                  screen: 'Messages',
+                  params: {
+                    screen: 'Chat',
+                    params: {
+                      userId: match.partner_profile.id || '',
+                      name: match.partner_profile.email?.split('@')[0] || 'Match'
+                    }
+                  }
+                });
+              }
             } catch (err) {
               Alert.alert('Error', 'Failed to accept match');
             }
@@ -198,78 +277,157 @@ export default function MatchScreen() {
     );
   };
 
-  const renderMatchCard = (match: MatchWithProfile, isPending: boolean = false) => (
-    <MatchCard key={match.id} elevate>
-      <MatchHeader>
-        <PartnerInfo>
-          <PartnerName>
-            {match.partner_profile.email?.split('@')[0]}
-          </PartnerName>
-          <MatchDate>
-            {new Date(match.match_date).toLocaleDateString()}
-          </MatchDate>
-        </PartnerInfo>
-        <ScoreContainer>
-          <ScoreText>
-            {Math.round(match.compatibility_score * 100)}%
-          </ScoreText>
-          <ScoreLabel>Match</ScoreLabel>
-        </ScoreContainer>
-      </MatchHeader>
+  const renderCompatibilityDetails = (match: MatchWithProfile) => {
+    if (!match.compatibility_details) return null;
+    
+    const { 
+      zodiac_compatibility, 
+      personality_match, 
+      lifestyle_match, 
+      values_match,
+      overall_compatibility
+    } = match.compatibility_details;
+    
+    return (
+      <CompatibilitySection>
+        <CompatibilityTitle>Compatibility Breakdown</CompatibilityTitle>
+        
+        <CompatibilityRow>
+          <CompatibilityLabel>Overall</CompatibilityLabel>
+          <CompatibilityBar value={overall_compatibility / 100}>
+            <Progress.Indicator backgroundColor="$primary" />
+          </CompatibilityBar>
+          <CompatibilityValue>{overall_compatibility}%</CompatibilityValue>
+        </CompatibilityRow>
+        
+        <CompatibilityRow>
+          <CompatibilityLabel>Astrological</CompatibilityLabel>
+          <CompatibilityBar value={zodiac_compatibility / 100}>
+            <Progress.Indicator backgroundColor="$purple10" />
+          </CompatibilityBar>
+          <CompatibilityValue>{zodiac_compatibility}%</CompatibilityValue>
+        </CompatibilityRow>
+        
+        <CompatibilityRow>
+          <CompatibilityLabel>Personality</CompatibilityLabel>
+          <CompatibilityBar value={personality_match / 100}>
+            <Progress.Indicator backgroundColor="$blue10" />
+          </CompatibilityBar>
+          <CompatibilityValue>{personality_match}%</CompatibilityValue>
+        </CompatibilityRow>
+        
+        <CompatibilityRow>
+          <CompatibilityLabel>Lifestyle</CompatibilityLabel>
+          <CompatibilityBar value={lifestyle_match / 100}>
+            <Progress.Indicator backgroundColor="$green10" />
+          </CompatibilityBar>
+          <CompatibilityValue>{lifestyle_match}%</CompatibilityValue>
+        </CompatibilityRow>
+        
+        <CompatibilityRow>
+          <CompatibilityLabel>Values</CompatibilityLabel>
+          <CompatibilityBar value={values_match / 100}>
+            <Progress.Indicator backgroundColor="$orange10" />
+          </CompatibilityBar>
+          <CompatibilityValue>{values_match}%</CompatibilityValue>
+        </CompatibilityRow>
+      </CompatibilitySection>
+    );
+  };
 
-      <Separator />
+  const renderMatchCard = (match: MatchWithProfile, isPending: boolean = false) => {
+    const isExpanded = expandedMatches[match.id] || false;
+    
+    return (
+      <MatchCard key={match.id} elevate>
+        <MatchHeader>
+          <PartnerInfo>
+            <PartnerName>
+              {match.partner_profile.email?.split('@')[0]}
+            </PartnerName>
+            <MatchDate>
+              {new Date(match.created_at).toLocaleDateString()}
+            </MatchDate>
+          </PartnerInfo>
+          <ScoreContainer>
+            <ScoreText>
+              {match.compatibility_details?.overall_compatibility || Math.round(match.compatibility_score * 100)}%
+            </ScoreText>
+            <ScoreLabel>Match</ScoreLabel>
+          </ScoreContainer>
+        </MatchHeader>
 
-      <YStack space="$2" marginTop="$4">
-        <DetailRow>
-          <Ionicons name="calendar" size={16} color="$primary" />
-          <DetailText>{match.date_type}</DetailText>
-        </DetailRow>
-        <DetailRow>
-          <Ionicons name="location" size={16} color="$primary" />
-          <DetailText>
-            {match.partner_profile.location_city || 'Location not specified'}
-          </DetailText>
-        </DetailRow>
-      </YStack>
+        <Separator />
 
-      {isPending ? (
-        <ActionButtons>
+        <YStack space="$2" marginTop="$4">
+          <DetailRow>
+            <Ionicons name="calendar" size={16} color="#FF4B6E" />
+            <DetailText>Match</DetailText>
+          </DetailRow>
+          <DetailRow>
+            <Ionicons name="location" size={16} color="#FF4B6E" />
+            <DetailText>
+              {match.partner_profile.location?.name || 'Location not specified'}
+            </DetailText>
+          </DetailRow>
+        </YStack>
+
+        {isExpanded && renderCompatibilityDetails(match)}
+
+        <ToggleButton onPress={() => toggleMatchDetails(match.id)}>
+          {isExpanded ? 'Hide Details' : 'Show Compatibility Details'}
+        </ToggleButton>
+
+        {isPending ? (
+          <ActionButtons>
+            <Button
+              onPress={() => handleRejectMatch(match.id)}
+              variant="outlined"
+              borderColor="$red10"
+              backgroundColor="transparent"
+              color="$red10"
+              flex={1}
+              fontFamily="$body"
+            >
+              Reject
+            </Button>
+            <Button
+              onPress={() => handleAcceptMatch(match.id)}
+              backgroundColor="$primary"
+              color="white"
+              flex={1}
+              fontFamily="$body"
+            >
+              Accept
+            </Button>
+          </ActionButtons>
+        ) : (
           <Button
-            onPress={() => handleRejectMatch(match.id)}
-            variant="outlined"
-            borderColor="$red10"
-            backgroundColor="transparent"
-            color="$red10"
-            flex={1}
-            fontFamily="$body"
-          >
-            Reject
-          </Button>
-          <Button
-            onPress={() => handleAcceptMatch(match.id)}
+            onPress={() => {
+              navigation.navigate('Main', { 
+                screen: 'Messages',
+                params: {
+                  screen: 'Chat',
+                  params: {
+                    userId: match.partner_profile.id || '',
+                    name: match.partner_profile.email?.split('@')[0] || 'Match'
+                  }
+                }
+              });
+            }}
             backgroundColor="$primary"
             color="white"
-            flex={1}
+            marginTop="$4"
             fontFamily="$body"
+            space="$2"
           >
-            Accept
+            Chat
+            <Ionicons name="chatbubble" size={20} color="white" />
           </Button>
-        </ActionButtons>
-      ) : (
-        <Button
-          onPress={() => navigation.navigate('Chat', { matchId: match.id })}
-          backgroundColor="$primary"
-          color="white"
-          marginTop="$4"
-          fontFamily="$body"
-          space="$2"
-        >
-          Chat
-          <Ionicons name="chatbubble" size={20} color="white" />
-        </Button>
-      )}
-    </MatchCard>
-  );
+        )}
+      </MatchCard>
+    );
+  };
 
   if (loading) {
     return (
@@ -285,48 +443,65 @@ export default function MatchScreen() {
         <HeaderTitle>Matches</HeaderTitle>
       </Header>
 
-      {error ? (
-        <ErrorContainer>
-          <ErrorText>{error}</ErrorText>
-          <Button
-            onPress={refresh}
-            backgroundColor="$primary"
-            color="white"
-            size="$4"
-            fontFamily="$body"
-          >
-            Retry
-          </Button>
-        </ErrorContainer>
-      ) : (
-        <>
-          {pendingMatches.length > 0 && (
-            <Section>
-              <SectionTitle>
-                Pending Matches ({pendingMatches.length})
-              </SectionTitle>
-              {pendingMatches.map(match => renderMatchCard(match, true))}
-            </Section>
-          )}
-
-          <Section>
-            <SectionTitle>
-              Active Matches ({activeMatches.length})
-            </SectionTitle>
-            {activeMatches.length > 0 ? (
-              activeMatches.map(match => renderMatchCard(match))
-            ) : (
-              <EmptyState>
-                <Ionicons name="people" size={48} color="$primary" />
-                <EmptyStateText>
-                  No active matches yet.{'\n'}
-                  Create a date preference to start matching!
-                </EmptyStateText>
-              </EmptyState>
+      <YStack flex={1}>
+        {error ? (
+          <ErrorContainer>
+            <ErrorText>{error}</ErrorText>
+            <Button
+              onPress={refresh}
+              backgroundColor="$primary"
+              color="white"
+              size="$4"
+              fontFamily="$body"
+            >
+              Retry
+            </Button>
+          </ErrorContainer>
+        ) : (
+          <>
+            {pendingMatches.length > 0 && (
+              <Section>
+                <SectionTitle>
+                  Pending Matches ({pendingMatches.length})
+                </SectionTitle>
+                {pendingMatches.map(match => renderMatchCard(match, true))}
+              </Section>
             )}
-          </Section>
-        </>
-      )}
+
+            <Section flex={1}>
+              <SectionTitle>
+                Active Matches ({activeMatches.length})
+              </SectionTitle>
+              {activeMatches.length > 0 ? (
+                <>
+                  {activeMatches.map(match => renderMatchCard(match))}
+                  
+                  {hasMore && (
+                    <Button
+                      onPress={loadMore}
+                      backgroundColor="transparent"
+                      color="$primary"
+                      marginTop="$4"
+                      disabled={loading}
+                      fontFamily="$body"
+                    >
+                      {loading ? 'Loading...' : 'Load More Matches'}
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <EmptyState>
+                  <Ionicons name="people" size={48} color="#FF4B6E" />
+                  <EmptyStateText>
+                    No active matches yet.{'\n'}
+                    Create a date preference to start matching!
+                  </EmptyStateText>
+                </EmptyState>
+              )}
+            </Section>
+          </>
+        )}
+      </YStack>
     </MainContainer>
   );
 }

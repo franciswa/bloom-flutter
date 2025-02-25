@@ -27427,13 +27427,13 @@
             "normal": "Inter"
           },
           "700": {
-            "normal": "InterBold"
+            "normal": "Futura, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
           },
           "800": {
-            "normal": "InterBold"
+            "normal": "Futura, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
           },
           "900": {
-            "normal": "InterBold"
+            "normal": "Futura, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
           }
         }
       },
@@ -27525,7 +27525,7 @@
             "normal": "Inter"
           },
           "normal": {
-            "normal": "Inter"
+            "normal": "Futura, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
           }
         },
         "size": {
@@ -27548,7 +27548,7 @@
           "true": 15
         }
       },
-      "astrological": {
+      "geist": {
         "family": "Inter",
         "lineHeight": {
           "1": 22,
@@ -27655,7 +27655,229 @@
             "normal": "Inter"
           },
           "normal": {
-            "normal": "AstroGlyphs"
+            "normal": "Futura, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+          }
+        }
+      },
+      "openSauce": {
+        "family": "Inter",
+        "lineHeight": {
+          "1": 22,
+          "2": 24,
+          "3": 26,
+          "4": 30,
+          "5": 34,
+          "6": 42,
+          "7": 50,
+          "8": 33,
+          "9": 40,
+          "10": 56,
+          "11": 65,
+          "12": 72,
+          "13": 82,
+          "14": 102,
+          "15": 124,
+          "16": 144,
+          "true": 24
+        },
+        "weight": {
+          "1": "300",
+          "2": "300",
+          "3": "300",
+          "4": "300",
+          "5": "300",
+          "6": "300",
+          "7": "300",
+          "8": "300",
+          "9": "300",
+          "10": "300",
+          "11": "300",
+          "12": "300",
+          "13": "300",
+          "14": "300",
+          "15": "300",
+          "16": "300",
+          "true": "300"
+        },
+        "letterSpacing": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0,
+          "13": 0,
+          "14": 0,
+          "15": 0,
+          "16": 0,
+          "true": 0
+        },
+        "size": {
+          "1": 12,
+          "2": 14,
+          "3": 16,
+          "4": 20,
+          "5": 24,
+          "6": 32,
+          "7": 40,
+          "8": 23,
+          "9": 30,
+          "10": 46,
+          "11": 55,
+          "12": 62,
+          "13": 72,
+          "14": 92,
+          "15": 114,
+          "16": 134,
+          "true": 14
+        },
+        "face": {
+          "100": {
+            "normal": "Inter"
+          },
+          "200": {
+            "normal": "Inter"
+          },
+          "300": {
+            "normal": "Inter"
+          },
+          "400": {
+            "normal": "Inter"
+          },
+          "500": {
+            "normal": "Inter"
+          },
+          "600": {
+            "normal": "Inter"
+          },
+          "700": {
+            "normal": "Inter"
+          },
+          "800": {
+            "normal": "Inter"
+          },
+          "900": {
+            "normal": "Inter"
+          },
+          "normal": {
+            "normal": "Futura, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+          }
+        }
+      },
+      "astrological": {
+        "family": "Inter",
+        "lineHeight": {
+          "1": 22,
+          "2": 24,
+          "3": 26,
+          "4": 30,
+          "5": 34,
+          "6": 42,
+          "7": 50,
+          "8": 58,
+          "9": 40,
+          "10": 56,
+          "11": 65,
+          "12": 72,
+          "13": 82,
+          "14": 102,
+          "15": 124,
+          "16": 144,
+          "true": 24
+        },
+        "weight": {
+          "1": "300",
+          "2": "300",
+          "3": "300",
+          "4": "300",
+          "5": "300",
+          "6": "300",
+          "7": "300",
+          "8": "300",
+          "9": "300",
+          "10": "300",
+          "11": "300",
+          "12": "300",
+          "13": "300",
+          "14": "300",
+          "15": "300",
+          "16": "300",
+          "true": "300"
+        },
+        "letterSpacing": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0,
+          "13": 0,
+          "14": 0,
+          "15": 0,
+          "16": 0,
+          "true": 0
+        },
+        "size": {
+          "1": 12,
+          "2": 14,
+          "3": 16,
+          "4": 20,
+          "5": 24,
+          "6": 32,
+          "7": 40,
+          "8": 48,
+          "9": 30,
+          "10": 46,
+          "11": 55,
+          "12": 62,
+          "13": 72,
+          "14": 92,
+          "15": 114,
+          "16": 134,
+          "true": 14
+        },
+        "face": {
+          "100": {
+            "normal": "Inter"
+          },
+          "200": {
+            "normal": "Inter"
+          },
+          "300": {
+            "normal": "Inter"
+          },
+          "400": {
+            "normal": "Inter"
+          },
+          "500": {
+            "normal": "Inter"
+          },
+          "600": {
+            "normal": "Inter"
+          },
+          "700": {
+            "normal": "Inter"
+          },
+          "800": {
+            "normal": "Inter"
+          },
+          "900": {
+            "normal": "Inter"
+          },
+          "normal": {
+            "normal": "Futura, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
           }
         }
       }

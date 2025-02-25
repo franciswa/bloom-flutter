@@ -7,6 +7,8 @@ import { ProfileProvider } from './src/hooks/useProfile';
 import { NotificationsProvider } from './src/hooks/notifications-context';
 
 export default function App() {
+  // Using system font Futura, no need to load custom fonts
+
   return (
     <TamaguiProvider config={config}>
       <AuthProvider>

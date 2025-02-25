@@ -1,4 +1,5 @@
 import { BirthData, ZodiacSign, ZodiacDateRanges, NatalChartData } from '../types/compatibility';
+import { getPlanetaryPositions, getEphemerisData, calculateSimplifiedPositions } from './astrologyApi';
 
 // Check if a date falls within a date range that may span across year boundary
 function isDateInRange(
@@ -56,18 +57,79 @@ export function getDefaultPlanetPositions(sunSign: ZodiacSign) {
 }
 
 // Create natal chart from birth data
-export function createNatalChart(birthData: BirthData): NatalChartData {
+export async function createNatalChart(birthData: BirthData): Promise<NatalChartData> {
   const sunSign = calculateZodiacSign(birthData.date);
   
-  // For now, use default positions. In the future, we can:
-  // 1. Use a web service for precise calculations
-  // 2. Implement simplified calculations based on birth time
-  // 3. Use pre-calculated ephemeris data
-  return {
-    birthData,
-    sign: sunSign,
-    planetPositions: getDefaultPlanetPositions(sunSign)
-  };
+  try {
+    // Try to get accurate planetary positions using the API
+    const planetPositions = await getPlanetaryPositions(birthData);
+    
+    return {
+      birthData,
+      sign: sunSign,
+      planetPositions
+    };
+  } catch (error) {
+    console.warn('Error getting planetary positions from API, falling back to alternatives:', error);
+    
+    try {
+      // Try to use pre-calculated ephemeris data
+      const planetPositions = getEphemerisData(birthData.date);
+      
+      return {
+        birthData,
+        sign: sunSign,
+        planetPositions
+      };
+    } catch (ephemerisError) {
+      console.warn('Error using ephemeris data, falling back to simplified calculations:', ephemerisError);
+      
+      try {
+        // Try to use simplified calculations based on birth time
+        const planetPositions = calculateSimplifiedPositions(birthData);
+        
+        return {
+          birthData,
+          sign: sunSign,
+          planetPositions
+        };
+      } catch (simplifiedError) {
+        console.warn('Error using simplified calculations, falling back to default positions:', simplifiedError);
+        
+        // Fall back to default positions
+        return {
+          birthData,
+          sign: sunSign,
+          planetPositions: getDefaultPlanetPositions(sunSign)
+        };
+      }
+    }
+  }
+}
+
+// Create natal chart from birth data synchronously (for backward compatibility)
+export function createNatalChartSync(birthData: BirthData): NatalChartData {
+  const sunSign = calculateZodiacSign(birthData.date);
+  
+  try {
+    // Try to use simplified calculations based on birth time
+    const planetPositions = calculateSimplifiedPositions(birthData);
+    
+    return {
+      birthData,
+      sign: sunSign,
+      planetPositions
+    };
+  } catch (error) {
+    console.warn('Error using simplified calculations, falling back to default positions:', error);
+    
+    // Fall back to default positions
+    return {
+      birthData,
+      sign: sunSign,
+      planetPositions: getDefaultPlanetPositions(sunSign)
+    };
+  }
 }
 
 // Validate birth data
