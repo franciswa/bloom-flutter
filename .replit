@@ -1,4 +1,4 @@
-run = "cd bloom-mobile && yarn install && TAMAGUI_TARGET=web yarn web"
+run = "yarn install && node ./simple-server.js"
 hidden = [".config", "package-lock.json", "node_modules", ".expo"]
 modules = ["nodejs-20:v8-20230920-bd784b9"]
 
@@ -26,8 +26,8 @@ language = "nodejs"
     start = "typescript-language-server --stdio"
 
 [deployment]
-build = ["sh", "-c", "cd bloom-mobile && yarn install"]
-run = ["sh", "-c", "cd bloom-mobile && TAMAGUI_TARGET=web yarn web"]
+build = ["sh", "-c", "yarn install"]
+run = ["sh", "-c", "node ./simple-server.js"]
 deploymentTarget = "cloudrun"
 
 [[ports]]

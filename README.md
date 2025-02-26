@@ -1,130 +1,88 @@
 # Bloom Mobile App
 
-A mobile dating app that matches users based on zodiac compatibility and shared interests.
+## Running the App
 
-## Features
+### Issue with File Watchers (ENOSPC Error)
 
-- User authentication and profile management
-- Zodiac-based matchmaking
-- Real-time chat with matches
-- Date planning and scheduling
-- Push notifications for matches, messages, and date reminders
-- Theme customization (light/dark/system)
-- Privacy settings
+If you encounter the following error when trying to run the app:
 
-## Tech Stack
-
-- React Native with Expo
-- TypeScript
-- Supabase for backend and real-time features
-- React Navigation for routing
-- React Native Elements UI library
-- Expo Notifications for push notifications
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v16 or later)
-- npm or yarn
-- Expo CLI
-- Supabase account and project
-
-### Environment Setup
-
-Create a `.env` file in the root directory with the following variables:
-
-```env
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_KEY=your_supabase_service_key
+```
+Error: ENOSPC: System limit for number of file watchers reached
 ```
 
-### Installation
+This is a common issue with Expo and React Native development, especially on Linux systems. The error occurs because Metro bundler tries to watch too many files, exceeding the system's limit.
 
-1. Install dependencies:
+### Solutions
+
+We've provided several optimized ways to run the app that should avoid this issue:
+
+#### Option 1: Serve the pre-built web version (RECOMMENDED)
+
 ```bash
-npm install
+npm run serve:web
 ```
 
-2. Run database migrations:
+This script:
+- Serves the pre-built web version of the app using a simple static server
+- Does not require file watching or compilation
+- The app will be available at http://localhost:3005
+- **This is the most reliable solution and should be your first choice**
+- Note: This serves the already built version in the web-build directory
+
+#### Option 2: Run in web mode using Vite
+
 ```bash
-npm run db:migrate
+npm run start:web
 ```
 
-3. Start the development server:
+This script:
+- Starts the app in web mode using Vite instead of Expo
+- Vite is more lightweight than Expo but may still encounter ENOSPC errors
+- The app will be available at http://localhost:3000
+- Note: Since file watching is disabled, you'll need to restart the server after making changes
+
+#### Option 3: Use the optimized Expo starter (may still encounter ENOSPC on some systems)
+
 ```bash
+npm run start:optimized
+```
+
+This script:
+- Attempts to increase the system's file watch limit (requires sudo permissions)
+- Starts Expo with reduced worker count and memory usage
+- Uses an extremely optimized Metro configuration with minimal file watching
+- Runs in production mode with minification to reduce resource usage
+
+#### Option 3: Manually increase system file watch limit
+
+If you want to use the regular Expo commands, you can manually increase your system's file watch limit:
+
+```bash
+# Temporarily increase the limit
+sudo sysctl -w fs.inotify.max_user_watches=524288
+
+# Then run the app normally
 npm start
 ```
 
-## Database Migrations
+To make this change permanent, add the following to `/etc/sysctl.conf`:
 
-The project uses SQL migrations to manage the database schema. Migrations are stored in `database/migrations/` and are executed in order.
+```
+fs.inotify.max_user_watches=524288
+```
 
-### Creating a New Migration
+Then run:
 
 ```bash
-npm run db:migrate:create migration_name
+sudo sysctl -p
 ```
 
-This will create a new SQL file in the migrations directory with a timestamp prefix.
+## Other Available Scripts
 
-### Running Migrations
-
-```bash
-npm run db:migrate
-```
-
-This will execute any pending migrations in order and record their execution in the `migrations` table.
-
-## Notifications
-
-The app uses Expo Notifications for push notifications and includes several types of notifications:
-
-- Match notifications: When users are matched based on compatibility
-- Message notifications: When receiving new chat messages
-- Date reminders: 24 hours before scheduled dates
-
-### Notification Settings
-
-Users can customize their notification preferences in the Settings screen:
-- Enable/disable all notifications
-- Toggle specific notification types (matches, messages, date reminders)
-
-### Message Archiving
-
-Old messages are automatically archived after 90 days to improve performance. Archived messages are still accessible but stored in a separate table. The system automatically cleans up:
-
-- Read notifications older than 30 days
-- Unread notifications older than 90 days
-- Archived messages older than 1 year
-- Rejected matches older than 90 days
-- Cancelled date preferences older than 30 days
-
-## Project Structure
-
-```
-bloom-mobile/
-├── src/
-│   ├── components/     # Reusable UI components
-│   ├── hooks/         # Custom React hooks
-│   ├── screens/       # Screen components
-│   ├── theme/         # Theme configuration
-│   ├── types/         # TypeScript type definitions
-│   └── lib/           # Utility functions and services
-├── database/
-│   ├── migrations/    # SQL migration files
-│   └── setup.sql      # Initial database setup
-└── assets/           # Images, fonts, and other static files
-```
-
-## Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Run tests and ensure code quality
-4. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- `npm start` - Start Expo development server (standard)
+- `npm run android` - Start Expo and open on Android
+- `npm run ios` - Start Expo and open on iOS
+- `npm run web` - Start Expo in web mode
+- `npm run build:web` - Build the web version using Expo
+- `npm run build:vite` - Build the web version using Vite
+- `npm run dev` - Run Vite development server

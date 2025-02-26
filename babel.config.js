@@ -1,7 +1,10 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
+    presets: [
+      'babel-preset-expo',
+      '@babel/preset-typescript'
+    ],
     plugins: [
       [
         'module-resolver',
@@ -31,6 +34,8 @@ module.exports = function (api) {
           config: './tamagui.config.ts',
         },
       ],
+      ['@babel/plugin-transform-typescript', { allowNamespaces: true }],
+      '@babel/plugin-transform-runtime',
     ],
   };
 };

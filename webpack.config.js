@@ -24,22 +24,39 @@ module.exports = async function (env, argv) {
     entry: expoConfig.entry,
     output: expoConfig.output,
     devtool: expoConfig.devtool,
-    devServer: expoConfig.devServer,
+    devServer: {
+      ...expoConfig.devServer,
+      watchOptions: {
+        ignored: [
+          '**/node_modules',
+          '**/\.git',
+          '**/*.test.js',
+          '**/__tests__/**',
+          '**/coverage/**',
+        ],
+        poll: false,
+      },
+    },
     
     // Add polyfills for crypto and other Node.js modules
     resolve: {
       extensions: ['.web.js', '.web.jsx', '.web.ts', '.web.tsx', '.js', '.jsx', '.ts', '.tsx'],
       alias: {
         'react-native$': 'react-native-web',
-        'crypto': require.resolve('crypto-browserify'),
+        'crypto': path.resolve(__dirname, 'src/polyfills/crypto.js'),
         'stream': require.resolve('stream-browserify'),
         'buffer': require.resolve('buffer'),
         'process': require.resolve('process/browser'),
         'expo-modules-core/build/uuid/uuid.web': path.resolve(__dirname, 'src/polyfills/uuid.js'),
         'expo-modules-core/node_modules/uuid': path.resolve(__dirname, 'src/polyfills/uuid.js'),
+        '@react-native-community/datetimepicker': path.resolve(__dirname, 'src/polyfills/DateTimePicker.web.jsx'),
+        'react-native/Libraries/Image/AssetRegistry': path.resolve(__dirname, 'src/polyfills/AssetResolver.js'),
+        'react-native/Libraries/Image/AssetSourceResolver': path.resolve(__dirname, 'src/polyfills/AssetResolver.js'),
+        '@react-native/assets-registry/registry': path.resolve(__dirname, 'src/polyfills/AssetResolver.js'),
+        'react-native-web/Libraries/Utilities/codegenNativeComponent': path.resolve(__dirname, 'src/polyfills/codegenNativeComponent.js'),
       },
       fallback: {
-        crypto: require.resolve('crypto-browserify'),
+        crypto: path.resolve(__dirname, 'src/polyfills/crypto.js'),
         stream: require.resolve('stream-browserify'),
         buffer: require.resolve('buffer'),
         process: require.resolve('process/browser'),
@@ -56,7 +73,13 @@ module.exports = async function (env, argv) {
           use: {
             loader: 'babel-loader',
             options: {
-              presets: ['babel-preset-expo'],
+              presets: [
+                'babel-preset-expo',
+                '@babel/preset-typescript'
+              ],
+              plugins: [
+                ['@babel/plugin-transform-typescript', { allowNamespaces: true }]
+              ]
             },
           },
         },

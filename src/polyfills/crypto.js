@@ -1,17 +1,51 @@
-// Use the browser's native crypto API
+// Polyfill for crypto module in web environment
+import { randomUUID } from './uuid';
+
+// Create a minimal implementation of the crypto API
 const crypto = {
-  randomUUID: () => {
-    if (typeof window !== 'undefined' && window.crypto) {
-      return window.crypto.randomUUID();
+  getRandomValues: function(array) {
+    if (!(array instanceof Uint8Array || array instanceof Uint16Array || array instanceof Uint32Array)) {
+      throw new Error('getRandomValues requires a Uint8Array, Uint16Array, or Uint32Array');
     }
-    // Fallback for environments without crypto.randomUUID
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0;
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
+    
+    for (let i = 0; i < array.length; i++) {
+      // Generate random values based on the array type
+      if (array instanceof Uint8Array) {
+        array[i] = Math.floor(Math.random() * 256);
+      } else if (array instanceof Uint16Array) {
+        array[i] = Math.floor(Math.random() * 65536);
+      } else if (array instanceof Uint32Array) {
+        array[i] = Math.floor(Math.random() * 4294967296);
+      }
+    }
+    
+    return array;
   },
-  // Add other crypto methods if needed
+  
+  randomUUID: randomUUID,
+  
+  // Add other crypto methods as needed
+  subtle: {
+    // Placeholder for SubtleCrypto API
+    // Implement specific methods as needed
+    digest: async function(algorithm, data) {
+      throw new Error('SubtleCrypto.digest is not implemented in this polyfill');
+    }
+  }
 };
 
-module.exports = crypto;
+// Export the crypto object
+export default crypto;
+
+// For compatibility with different import styles
+export const getRandomValues = crypto.getRandomValues;
+export { randomUUID };
+
+// Add compatibility with CommonJS require
+if (typeof module !== 'undefined') {
+  module.exports = {
+    default: crypto,
+    getRandomValues: crypto.getRandomValues,
+    randomUUID
+  };
+}
