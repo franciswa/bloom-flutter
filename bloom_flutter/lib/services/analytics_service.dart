@@ -78,7 +78,7 @@ class AnalyticsService {
     try {
       await _posthog.capture(
         eventName: eventName,
-        properties: properties,
+        properties: properties as Map<String, Object>?,
       );
       debugPrint('Event tracked: $eventName');
     } catch (e, stackTrace) {
@@ -102,7 +102,7 @@ class AnalyticsService {
 
       await _posthog.screen(
         screenName: screenName,
-        properties: screenProperties,
+        properties: screenProperties as Map<String, Object>?,
       );
       debugPrint('Screen view tracked: $screenName');
     } catch (e, stackTrace) {

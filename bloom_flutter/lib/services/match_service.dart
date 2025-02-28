@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
+import '../models/compatibility.dart';
 import '../models/match.dart';
 import '../models/profile.dart';
 import 'supabase_service.dart';
@@ -62,9 +63,7 @@ class MatchService {
 
   /// Delete match
   Future<void> deleteMatch(String matchId) async {
-    await SupabaseService.from(_tableName)
-        .delete()
-        .filter('id', 'eq', matchId);
+    await SupabaseService.from(_tableName).delete().filter('id', 'eq', matchId);
   }
 
   /// Get matches by user ID
@@ -117,49 +116,59 @@ class MatchService {
   Future<Match> likeUser(String currentUserId, String targetUserId) async {
     // Check if match already exists
     final existingMatch = await getMatchByUserIds(currentUserId, targetUserId);
-    
+
     if (existingMatch != null) {
       // If current user is user1, update user1_action
-      if (existingMatch.user1Id == currentUserId) {
+      if (existingMatch.firstUserId == currentUserId) {
         return await updateMatch(
           existingMatch.copyWith(
-            user1Action: MatchAction.like,
-            status: existingMatch.user2Action == MatchAction.like
+            firstUserAction: MatchAction.like,
+            status: existingMatch.secondUserAction == MatchAction.like
                 ? MatchStatus.matched
                 : MatchStatus.pending,
             updatedAt: DateTime.now(),
           ),
         );
       }
-      
+
       // If current user is user2, update user2_action
-      if (existingMatch.user2Id == currentUserId) {
+      if (existingMatch.secondUserId == currentUserId) {
         return await updateMatch(
           existingMatch.copyWith(
-            user2Action: MatchAction.like,
-            status: existingMatch.user1Action == MatchAction.like
+            secondUserAction: MatchAction.like,
+            status: existingMatch.firstUserAction == MatchAction.like
                 ? MatchStatus.matched
                 : MatchStatus.pending,
             updatedAt: DateTime.now(),
           ),
         );
       }
-      
+
       throw Exception('Current user not found in match');
     }
-    
+
     // Create new match
+    final now = DateTime.now();
+    final expiresAt =
+        now.add(const Duration(days: 7)); // Match expires in 7 days
+
     return await createMatch(
       Match(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        user1Id: currentUserId,
-        user2Id: targetUserId,
-        user1Action: MatchAction.like,
-        user2Action: MatchAction.none,
+        id: now.millisecondsSinceEpoch.toString(),
+        firstUserId: currentUserId,
+        secondUserId: targetUserId,
+        firstUserAction: MatchAction.like,
+        secondUserAction: MatchAction.none,
         status: MatchStatus.pending,
         compatibilityScore: 0, // Will be updated by compatibility service
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        compatibilityLevel: CompatibilityLevel.moderate, // Default level
+        firstUserLiked: true,
+        secondUserLiked: false,
+        firstUserSeen: true,
+        secondUserSeen: false,
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: expiresAt,
       ),
     );
   }
@@ -168,45 +177,55 @@ class MatchService {
   Future<Match> dislikeUser(String currentUserId, String targetUserId) async {
     // Check if match already exists
     final existingMatch = await getMatchByUserIds(currentUserId, targetUserId);
-    
+
     if (existingMatch != null) {
       // If current user is user1, update user1_action
-      if (existingMatch.user1Id == currentUserId) {
+      if (existingMatch.firstUserId == currentUserId) {
         return await updateMatch(
           existingMatch.copyWith(
-            user1Action: MatchAction.dislike,
+            firstUserAction: MatchAction.dislike,
             status: MatchStatus.rejected,
             updatedAt: DateTime.now(),
           ),
         );
       }
-      
+
       // If current user is user2, update user2_action
-      if (existingMatch.user2Id == currentUserId) {
+      if (existingMatch.secondUserId == currentUserId) {
         return await updateMatch(
           existingMatch.copyWith(
-            user2Action: MatchAction.dislike,
+            secondUserAction: MatchAction.dislike,
             status: MatchStatus.rejected,
             updatedAt: DateTime.now(),
           ),
         );
       }
-      
+
       throw Exception('Current user not found in match');
     }
-    
+
     // Create new match
+    final now = DateTime.now();
+    final expiresAt =
+        now.add(const Duration(days: 7)); // Match expires in 7 days
+
     return await createMatch(
       Match(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        user1Id: currentUserId,
-        user2Id: targetUserId,
-        user1Action: MatchAction.dislike,
-        user2Action: MatchAction.none,
+        id: now.millisecondsSinceEpoch.toString(),
+        firstUserId: currentUserId,
+        secondUserId: targetUserId,
+        firstUserAction: MatchAction.dislike,
+        secondUserAction: MatchAction.none,
         status: MatchStatus.rejected,
         compatibilityScore: 0, // Will be updated by compatibility service
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        compatibilityLevel: CompatibilityLevel.moderate, // Default level
+        firstUserLiked: false,
+        secondUserLiked: false,
+        firstUserSeen: true,
+        secondUserSeen: false,
+        createdAt: now,
+        updatedAt: now,
+        expiresAt: expiresAt,
       ),
     );
   }
@@ -236,7 +255,7 @@ class MatchService {
     await updateMatch(
       (await getMatchById(matchId))!.copyWith(
         status: MatchStatus.reported,
-        reportReason: reason,
+        reportReason: () => reason,
         updatedAt: DateTime.now(),
       ),
     );
@@ -261,27 +280,40 @@ class MatchService {
         .filter('user_id', 'neq', userId)
         .filter('is_profile_visible', 'eq', true)
         .filter('is_profile_complete', 'eq', true)
-        .filter('birth_date', 'gte',
-            DateTime.now().subtract(Duration(days: 365 * maxAge)).toIso8601String())
-        .filter('birth_date', 'lte',
-            DateTime.now().subtract(Duration(days: 365 * minAge)).toIso8601String())
+        .filter(
+            'birth_date',
+            'gte',
+            DateTime.now()
+                .subtract(Duration(days: 365 * maxAge))
+                .toIso8601String())
+        .filter(
+            'birth_date',
+            'lte',
+            DateTime.now()
+                .subtract(Duration(days: 365 * minAge))
+                .toIso8601String())
         .order('created_at', ascending: false)
         .limit(limit)
         .range(offset, offset + limit - 1);
 
-    final profiles = response.map<Profile>((json) => Profile.fromJson(json)).toList();
-    
+    final profiles =
+        response.map<Profile>((json) => Profile.fromJson(json)).toList();
+
     // Filter out profiles that have already been liked/disliked
     final existingMatches = await getMatchesByUserId(userId);
     final existingMatchUserIds = existingMatches
-        .where((match) => 
-            match.status == MatchStatus.rejected || 
-            match.status == MatchStatus.blocked || 
+        .where((match) =>
+            match.status == MatchStatus.rejected ||
+            match.status == MatchStatus.blocked ||
             match.status == MatchStatus.reported)
-        .map((match) => match.firstUserId == userId ? match.secondUserId : match.firstUserId)
+        .map((match) => match.firstUserId == userId
+            ? match.secondUserId
+            : match.firstUserId)
         .toList();
-    
-    return profiles.where((profile) => !existingMatchUserIds.contains(profile.userId)).toList();
+
+    return profiles
+        .where((profile) => !existingMatchUserIds.contains(profile.userId))
+        .toList();
   }
 
   /// Get match stream
@@ -289,9 +321,10 @@ class MatchService {
     return SupabaseService.client
         .from(_tableName)
         .stream(primaryKey: ['id'])
-        .or('first_user_id.eq.$userId,second_user_id.eq.$userId')
+        .eq('first_user_id', userId)
         .order('updated_at')
-        .map((events) => events.map<Match>((event) => Match.fromJson(event)).toList());
+        .map((events) =>
+            events.map<Match>((event) => Match.fromJson(event)).toList());
   }
 
   /// Subscribe to match changes
@@ -305,7 +338,7 @@ class MatchService {
       callback: callback,
     );
   }
-  
+
   /// Unsubscribe from match changes
   Future<void> unsubscribeFromMatchChanges(RealtimeChannel channel) async {
     await SupabaseService.unsubscribeFromTable(channel);

@@ -75,13 +75,16 @@ class MatchProvider extends ChangeNotifier {
 
     final userId = _authProvider.currentUser!.id;
     _matches = await ServiceRegistry.matchService.getMatchesByUserId(userId);
-    _activeMatches = await ServiceRegistry.matchService.getActiveMatchesByUserId(userId);
-    _pendingMatches = await ServiceRegistry.matchService.getPendingMatchesByUserId(userId);
+    _activeMatches =
+        await ServiceRegistry.matchService.getActiveMatchesByUserId(userId);
+    _pendingMatches =
+        await ServiceRegistry.matchService.getPendingMatchesByUserId(userId);
   }
 
   /// Load potential matches
   Future<void> _loadPotentialMatches() async {
-    if (_authProvider.currentUser == null || _profileProvider.currentProfile == null) {
+    if (_authProvider.currentUser == null ||
+        _profileProvider.currentProfile == null) {
       return;
     }
 
@@ -110,7 +113,8 @@ class MatchProvider extends ChangeNotifier {
 
     // Unsubscribe from previous channel if exists
     if (_matchChannel != null) {
-      await ServiceRegistry.matchService.unsubscribeFromMatchChanges(_matchChannel!);
+      await ServiceRegistry.matchService
+          .unsubscribeFromMatchChanges(_matchChannel!);
     }
 
     // Subscribe to match changes
@@ -132,7 +136,8 @@ class MatchProvider extends ChangeNotifier {
 
   /// Update profile provider
   void updateProfileProvider({required ProfileProvider profileProvider}) {
-    if (_profileProvider.currentProfile?.userId != profileProvider.currentProfile?.userId) {
+    if (_profileProvider.currentProfile?.userId !=
+        profileProvider.currentProfile?.userId) {
       _init();
     }
   }
@@ -167,7 +172,8 @@ class MatchProvider extends ChangeNotifier {
 
     try {
       final userId = _authProvider.currentUser!.id;
-      final match = await ServiceRegistry.matchService.likeUser(userId, targetUserId);
+      final match =
+          await ServiceRegistry.matchService.likeUser(userId, targetUserId);
 
       // If it's a new match, add it to the matches list
       if (!_matches.any((m) => m.id == match.id)) {
@@ -181,12 +187,14 @@ class MatchProvider extends ChangeNotifier {
       }
 
       // If it's a new active match, add it to the active matches list
-      if (match.status == MatchStatus.matched && !_activeMatches.any((m) => m.id == match.id)) {
+      if (match.status == MatchStatus.matched &&
+          !_activeMatches.any((m) => m.id == match.id)) {
         _activeMatches.add(match);
       }
 
       // Remove from potential matches
-      _potentialMatches.removeWhere((profile) => profile.userId == targetUserId);
+      _potentialMatches
+          .removeWhere((profile) => profile.userId == targetUserId);
 
       _errorMessage = null;
     } catch (e) {
@@ -210,7 +218,8 @@ class MatchProvider extends ChangeNotifier {
 
     try {
       final userId = _authProvider.currentUser!.id;
-      final match = await ServiceRegistry.matchService.dislikeUser(userId, targetUserId);
+      final match =
+          await ServiceRegistry.matchService.dislikeUser(userId, targetUserId);
 
       // If it's a new match, add it to the matches list
       if (!_matches.any((m) => m.id == match.id)) {
@@ -224,7 +233,8 @@ class MatchProvider extends ChangeNotifier {
       }
 
       // Remove from potential matches
-      _potentialMatches.removeWhere((profile) => profile.userId == targetUserId);
+      _potentialMatches
+          .removeWhere((profile) => profile.userId == targetUserId);
 
       _errorMessage = null;
     } catch (e) {
@@ -312,7 +322,7 @@ class MatchProvider extends ChangeNotifier {
       if (index != -1) {
         _matches[index] = _matches[index].copyWith(
           status: MatchStatus.reported,
-          reportReason: reason,
+          reportReason: () => reason,
           updatedAt: DateTime.now(),
         );
       }

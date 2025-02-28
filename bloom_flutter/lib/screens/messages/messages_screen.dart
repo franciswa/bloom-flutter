@@ -10,7 +10,9 @@ import '../../providers/message_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
+import '../../utils/error_handling.dart';
 import '../../utils/helpers/date_helpers.dart';
+import '../../utils/helpers/ui_helpers.dart';
 import '../../widgets/common/loading_indicator.dart';
 import 'widgets/conversation_tile.dart';
 
@@ -67,7 +69,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
           });
         }
       } catch (e) {
-        // Ignore errors during preloading
+        // Log error but continue preloading others
+        debugPrint('Error preloading profile: ${e.toString()}');
       }
     }
   }
@@ -90,8 +93,23 @@ class _MessagesScreenState extends State<MessagesScreen> {
       }
       return profile;
     } catch (e) {
+      showErrorDialog(context, 'Failed to load profile', e);
       return null;
     }
+  }
+
+  /// Show error dialog
+  void showErrorDialog(BuildContext context, String title, dynamic error) {
+    UIHelpers.showErrorDialog(
+      context: context,
+      title: title,
+      message: UIHelpers.getErrorMessage(error),
+    );
+  }
+
+  /// Get error message
+  String getErrorMessage(dynamic error) {
+    return ErrorHandler.getUserFriendlyErrorMessage(error);
   }
 
   @override

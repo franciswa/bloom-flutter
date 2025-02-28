@@ -7,13 +7,15 @@ import 'supabase_service.dart';
 /// Message service
 class MessageService {
   /// Conversations table name
-  static const String _conversationsTable = AppConfig.supabaseConversationsTable;
-  
+  static const String _conversationsTable =
+      AppConfig.supabaseConversationsTable;
+
   /// Messages table name
   static const String _messagesTable = AppConfig.supabaseMessagesTable;
-  
+
   /// Storage bucket name
-  static const String _storageBucket = AppConfig.supabaseStorageMessagePhotosBucket;
+  static const String _storageBucket =
+      AppConfig.supabaseStorageMessagePhotosBucket;
 
   /// Default page size
   static const int defaultPageSize = 20;
@@ -53,7 +55,9 @@ class MessageService {
         .or('user1_id.eq.$userId,user2_id.eq.$userId')
         .order('updated_at', ascending: false);
 
-    return response.map<Conversation>((json) => Conversation.fromJson(json)).toList();
+    return response
+        .map<Conversation>((json) => Conversation.fromJson(json))
+        .toList();
   }
 
   /// Create conversation
@@ -83,7 +87,7 @@ class MessageService {
     await SupabaseService.from(_messagesTable)
         .delete()
         .eq('conversation_id', conversationId);
-    
+
     // Delete the conversation
     await SupabaseService.from(_conversationsTable)
         .delete()
@@ -100,7 +104,7 @@ class MessageService {
     var query = SupabaseService.from(_messagesTable)
         .select()
         .eq('conversation_id', conversationId);
-    
+
     // Apply cursor-based pagination
     if (cursor != null) {
       if (loadNewer) {
@@ -116,25 +120,26 @@ class MessageService {
       // Initial load, get the most recent messages
       query = query.order('created_at', ascending: false);
     }
-    
+
     // Limit the number of messages
     query = query.limit(pageSize + 1); // +1 to check if there are more messages
-    
+
     final response = await query;
-    
-    final messages = response.map<Message>((json) => Message.fromJson(json)).toList();
-    
+
+    final messages =
+        response.map<Message>((json) => Message.fromJson(json)).toList();
+
     // Check if there are more messages
     final hasMore = messages.length > pageSize;
     if (hasMore) {
       messages.removeLast(); // Remove the extra message
     }
-    
+
     // If loading newer messages, reverse the list to maintain chronological order
     if (loadNewer && cursor != null) {
       messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     }
-    
+
     // Get the new cursor (timestamp of the oldest/newest message)
     String? nextCursor;
     if (messages.isNotEmpty) {
@@ -142,7 +147,7 @@ class MessageService {
           ? messages.last.createdAt.toIso8601String()
           : messages.first.createdAt.toIso8601String();
     }
-    
+
     return PaginatedMessages(
       messages: messages,
       nextCursor: nextCursor,
@@ -171,17 +176,20 @@ class MessageService {
         .insert(message.toJson())
         .select()
         .single();
-    
+
     // Update the conversation's last message and updated_at
-    await updateConversation(
-      (await getConversationById(message.conversationId))!.copyWith(
-        lastMessageId: response['id'],
-        lastMessageText: message.text,
-        lastMessageSenderId: message.senderId,
-        lastMessageTimestamp: message.createdAt,
-        updatedAt: DateTime.now(),
-      ),
-    );
+    final conversation = await getConversationById(message.conversationId);
+    if (conversation != null) {
+      final now = DateTime.now();
+      await updateConversation(
+        conversation.copyWith(
+          lastMessage: () => response['id'],
+          lastMessageText: () => message.text,
+          lastMessageTimestamp: now,
+          updatedAt: now,
+        ),
+      );
+    }
 
     return Message.fromJson(response);
   }
@@ -205,12 +213,12 @@ class MessageService {
   /// Mark message as read
   Future<void> markMessageAsRead(String messageId) async {
     await SupabaseService.from(_messagesTable)
-        .update({'is_read': true})
-        .eq('id', messageId);
+        .update({'is_read': true}).eq('id', messageId);
   }
 
   /// Mark all messages as read
-  Future<void> markAllMessagesAsRead(String conversationId, String userId) async {
+  Future<void> markAllMessagesAsRead(
+      String conversationId, String userId) async {
     await SupabaseService.from(_messagesTable)
         .update({'is_read': true})
         .eq('conversation_id', conversationId)
@@ -220,7 +228,7 @@ class MessageService {
   /// Get unread message count
   Future<int> getUnreadMessageCount(String userId) async {
     final conversations = await getConversationsByUserId(userId);
-    
+
     int count = 0;
     for (final conversation in conversations) {
       final response = await SupabaseService.from(_messagesTable)
@@ -228,10 +236,10 @@ class MessageService {
           .eq('conversation_id', conversation.id)
           .neq('sender_id', userId)
           .eq('is_read', false);
-      
-      count += response.length;
+
+      count += response.length as int;
     }
-    
+
     return count;
   }
 
@@ -261,9 +269,11 @@ class MessageService {
     return SupabaseService.client
         .from(_conversationsTable)
         .stream(primaryKey: ['id'])
-        .or('user1_id.eq.$userId,user2_id.eq.$userId')
+        .eq('first_user_id', userId)
         .order('updated_at')
-        .map((events) => events.map<Conversation>((event) => Conversation.fromJson(event)).toList());
+        .map((events) => events
+            .map<Conversation>((event) => Conversation.fromJson(event))
+            .toList());
   }
 
   /// Get message stream
@@ -273,7 +283,8 @@ class MessageService {
         .stream(primaryKey: ['id'])
         .eq('conversation_id', conversationId)
         .order('created_at')
-        .map((events) => events.map<Message>((event) => Message.fromJson(event)).toList());
+        .map((events) =>
+            events.map<Message>((event) => Message.fromJson(event)).toList());
   }
 
   /// Subscribe to conversation changes
@@ -287,9 +298,10 @@ class MessageService {
       callback: callback,
     );
   }
-  
+
   /// Unsubscribe from conversation changes
-  Future<void> unsubscribeFromConversationChanges(RealtimeChannel channel) async {
+  Future<void> unsubscribeFromConversationChanges(
+      RealtimeChannel channel) async {
     await SupabaseService.unsubscribeFromTable(channel);
   }
 
@@ -304,12 +316,12 @@ class MessageService {
       callback: callback,
     );
   }
-  
+
   /// Unsubscribe from message changes
   Future<void> unsubscribeFromMessageChanges(RealtimeChannel channel) async {
     await SupabaseService.unsubscribeFromTable(channel);
   }
-  
+
   /// Create or get conversation
   Future<Conversation> createOrGetConversation({
     required String matchId,
@@ -321,24 +333,31 @@ class MessageService {
     if (existingConversation != null) {
       return existingConversation;
     }
-    
+
     // Create new conversation
+    final now = DateTime.now();
     return await createConversation(
       Conversation(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        matchId: matchId,
-        user1Id: user1Id,
-        user2Id: user2Id,
-        lastMessageId: null,
+        id: now.millisecondsSinceEpoch.toString(),
+        firstUserId: user1Id,
+        secondUserId: user2Id,
+        lastMessage: null,
         lastMessageText: null,
-        lastMessageSenderId: null,
         lastMessageTimestamp: null,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        firstUserUnreadCount: 0,
+        secondUserUnreadCount: 0,
+        firstUserMuted: false,
+        secondUserMuted: false,
+        firstUserArchived: false,
+        secondUserArchived: false,
+        firstUserDeleted: false,
+        secondUserDeleted: false,
+        createdAt: now,
+        updatedAt: now,
       ),
     );
   }
-  
+
   /// Send message
   Future<Message> sendMessage({
     required String conversationId,
@@ -346,16 +365,30 @@ class MessageService {
     required String text,
     String? imageUrl,
   }) async {
+    // Get the conversation to determine the receiver ID
+    final conversation = await getConversationById(conversationId);
+    if (conversation == null) {
+      throw Exception('Conversation not found');
+    }
+
+    final receiverId = conversation.firstUserId == senderId
+        ? conversation.secondUserId
+        : conversation.firstUserId;
+
+    final now = DateTime.now();
     return await createMessage(
       Message(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: now.millisecondsSinceEpoch.toString(),
         conversationId: conversationId,
         senderId: senderId,
+        receiverId: receiverId,
         text: text,
-        imageUrl: imageUrl,
-        isRead: false,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        type: imageUrl != null ? MessageType.image : MessageType.text,
+        status: MessageStatus.sent,
+        mediaUrl: imageUrl,
+        isDeleted: false,
+        createdAt: now,
+        updatedAt: now,
       ),
     );
   }
@@ -365,13 +398,13 @@ class MessageService {
 class PaginatedMessages {
   /// Messages
   final List<Message> messages;
-  
+
   /// Next cursor
   final String? nextCursor;
-  
+
   /// Has more
   final bool hasMore;
-  
+
   /// Creates a new [PaginatedMessages] instance
   const PaginatedMessages({
     required this.messages,

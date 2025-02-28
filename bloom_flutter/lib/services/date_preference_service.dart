@@ -342,10 +342,15 @@ class DatePreferenceService {
   /// Schedule date suggestion
   Future<DateSuggestion> scheduleDateSuggestion(
       String suggestionId, DateTime scheduledDate) async {
+    final suggestion = await getDateSuggestionById(suggestionId);
+    if (suggestion == null) {
+      throw Exception('Date suggestion not found');
+    }
+
     return await updateDateSuggestion(
-      (await getDateSuggestionById(suggestionId))!.copyWith(
+      suggestion.copyWith(
         status: DateSuggestionStatus.scheduled,
-        scheduledDate: scheduledDate,
+        scheduledDate: () => scheduledDate,
         updatedAt: DateTime.now(),
       ),
     );

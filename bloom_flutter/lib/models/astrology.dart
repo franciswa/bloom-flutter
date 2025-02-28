@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'astrology.g.dart';
-
 /// Zodiac sign enum
 @JsonEnum()
 enum ZodiacSign {

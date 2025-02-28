@@ -64,8 +64,10 @@ class NotificationProvider extends ChangeNotifier {
     }
 
     final userId = _authProvider.currentUser!.id;
-    _notifications = await ServiceRegistry.notificationService.getNotificationsByUserId(userId);
-    _unreadNotifications = await ServiceRegistry.notificationService.getUnreadNotificationsByUserId(userId);
+    _notifications = await ServiceRegistry.notificationService
+        .getNotificationsByUserId(userId);
+    _unreadNotifications = await ServiceRegistry.notificationService
+        .getUnreadNotificationsByUserId(userId);
   }
 
   /// Load notification settings
@@ -75,22 +77,15 @@ class NotificationProvider extends ChangeNotifier {
     }
 
     final userId = _authProvider.currentUser!.id;
-    _notificationSettings = await ServiceRegistry.notificationService.getNotificationSettings(userId);
+    _notificationSettings = await ServiceRegistry.notificationService
+        .getNotificationSettings(userId);
 
     // Create default settings if none exist
     if (_notificationSettings == null) {
-      _notificationSettings = NotificationSettings(
-        userId: userId,
-        matchesEnabled: true,
-        messagesEnabled: true,
-        likesEnabled: true,
-        compatibilityEnabled: true,
-        systemEnabled: true,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      _notificationSettings = NotificationSettings.defaultSettings(userId);
 
-      await ServiceRegistry.notificationService.createNotificationSettings(_notificationSettings!);
+      await ServiceRegistry.notificationService
+          .createNotificationSettings(_notificationSettings!);
     }
   }
 
@@ -104,11 +99,13 @@ class NotificationProvider extends ChangeNotifier {
 
     // Unsubscribe from previous channel if exists
     if (_notificationChannel != null) {
-      await ServiceRegistry.notificationService.unsubscribeFromNotificationChanges(_notificationChannel!);
+      await ServiceRegistry.notificationService
+          .unsubscribeFromNotificationChanges(_notificationChannel!);
     }
 
     // Subscribe to notification changes
-    _notificationChannel = ServiceRegistry.notificationService.subscribeToNotificationChanges(
+    _notificationChannel =
+        ServiceRegistry.notificationService.subscribeToNotificationChanges(
       userId,
       (payload) async {
         await _loadNotifications();
@@ -149,7 +146,8 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await ServiceRegistry.notificationService.markNotificationAsRead(notificationId);
+      await ServiceRegistry.notificationService
+          .markNotificationAsRead(notificationId);
 
       // Update notification in notifications list
       final index = _notifications.indexWhere((n) => n.id == notificationId);
@@ -182,7 +180,8 @@ class NotificationProvider extends ChangeNotifier {
 
     try {
       final userId = _authProvider.currentUser!.id;
-      await ServiceRegistry.notificationService.markAllNotificationsAsRead(userId);
+      await ServiceRegistry.notificationService
+          .markAllNotificationsAsRead(userId);
 
       // Update all notifications in notifications list
       for (var i = 0; i < _notifications.length; i++) {
@@ -211,7 +210,8 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await ServiceRegistry.notificationService.deleteNotification(notificationId);
+      await ServiceRegistry.notificationService
+          .deleteNotification(notificationId);
 
       // Remove notification from notifications list
       _notifications.removeWhere((n) => n.id == notificationId);
@@ -236,7 +236,8 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _notificationSettings = await ServiceRegistry.notificationService.updateNotificationSettings(settings);
+      _notificationSettings = await ServiceRegistry.notificationService
+          .updateNotificationSettings(settings);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -259,11 +260,12 @@ class NotificationProvider extends ChangeNotifier {
 
     try {
       final settings = _notificationSettings!.copyWith(
-        matchesEnabled: enabled,
+        newMatchEnabled: enabled,
         updatedAt: DateTime.now(),
       );
 
-      _notificationSettings = await ServiceRegistry.notificationService.updateNotificationSettings(settings);
+      _notificationSettings = await ServiceRegistry.notificationService
+          .updateNotificationSettings(settings);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -286,11 +288,12 @@ class NotificationProvider extends ChangeNotifier {
 
     try {
       final settings = _notificationSettings!.copyWith(
-        messagesEnabled: enabled,
+        newMessageEnabled: enabled,
         updatedAt: DateTime.now(),
       );
 
-      _notificationSettings = await ServiceRegistry.notificationService.updateNotificationSettings(settings);
+      _notificationSettings = await ServiceRegistry.notificationService
+          .updateNotificationSettings(settings);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -313,11 +316,12 @@ class NotificationProvider extends ChangeNotifier {
 
     try {
       final settings = _notificationSettings!.copyWith(
-        likesEnabled: enabled,
+        newLikeEnabled: enabled,
         updatedAt: DateTime.now(),
       );
 
-      _notificationSettings = await ServiceRegistry.notificationService.updateNotificationSettings(settings);
+      _notificationSettings = await ServiceRegistry.notificationService
+          .updateNotificationSettings(settings);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -340,11 +344,12 @@ class NotificationProvider extends ChangeNotifier {
 
     try {
       final settings = _notificationSettings!.copyWith(
-        compatibilityEnabled: enabled,
+        compatibilityUpdateEnabled: enabled,
         updatedAt: DateTime.now(),
       );
 
-      _notificationSettings = await ServiceRegistry.notificationService.updateNotificationSettings(settings);
+      _notificationSettings = await ServiceRegistry.notificationService
+          .updateNotificationSettings(settings);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -371,7 +376,8 @@ class NotificationProvider extends ChangeNotifier {
         updatedAt: DateTime.now(),
       );
 
-      _notificationSettings = await ServiceRegistry.notificationService.updateNotificationSettings(settings);
+      _notificationSettings = await ServiceRegistry.notificationService
+          .updateNotificationSettings(settings);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -418,7 +424,8 @@ class NotificationProvider extends ChangeNotifier {
   @override
   void dispose() {
     if (_notificationChannel != null) {
-      ServiceRegistry.notificationService.unsubscribeFromNotificationChanges(_notificationChannel!);
+      ServiceRegistry.notificationService
+          .unsubscribeFromNotificationChanges(_notificationChannel!);
     }
     super.dispose();
   }

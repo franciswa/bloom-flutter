@@ -13,7 +13,9 @@ import '../../providers/message_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
+import '../../utils/error_handling.dart';
 import '../../utils/helpers/date_helpers.dart';
+import '../../utils/helpers/ui_helpers.dart';
 import '../../widgets/common/loading_indicator.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/message_input.dart';
@@ -72,11 +74,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       await messageProvider.setCurrentConversation(widget.id);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to load conversation: ${e.toString()}'),
-        ),
-      );
+      showErrorDialog(context, 'Failed to load conversation', e);
     }
   }
 
@@ -123,11 +121,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       await messageProvider.sendMessage(text: text);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send message: ${e.toString()}'),
-        ),
-      );
+      showErrorDialog(context, 'Failed to send message', e);
     }
   }
 
@@ -156,17 +150,27 @@ class _ConversationScreenState extends State<ConversationScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send image: ${e.toString()}'),
-        ),
-      );
+      showErrorDialog(context, 'Failed to send image', e);
     }
   }
 
   // Cache for other user profiles
   final Map<String, Profile?> _otherUserProfiles = {};
   String _otherUserName = 'Chat';
+
+  /// Show error dialog
+  void showErrorDialog(BuildContext context, String title, dynamic error) {
+    UIHelpers.showErrorDialog(
+      context: context,
+      title: title,
+      message: UIHelpers.getErrorMessage(error),
+    );
+  }
+
+  /// Get error message
+  String getErrorMessage(dynamic error) {
+    return ErrorHandler.getUserFriendlyErrorMessage(error);
+  }
 
   Future<void> _loadOtherUserProfile() async {
     final messageProvider =
