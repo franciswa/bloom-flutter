@@ -56,6 +56,12 @@ class Profile extends Equatable {
   /// Birth time
   final String? birthTime;
 
+  /// Birth city
+  final String birthCity;
+
+  /// Birth country
+  final String birthCountry;
+
   /// Birth location
   final String birthLocation;
 
@@ -86,6 +92,18 @@ class Profile extends Equatable {
   /// Looking for
   final LookingFor lookingFor;
 
+  /// Min age preference
+  final int minAgePreference;
+
+  /// Max age preference
+  final int maxAgePreference;
+
+  /// Max distance preference
+  final double maxDistancePreference;
+
+  /// Profile photo URL
+  final String? profilePhotoUrl;
+
   /// Profile photo URLs
   final List<String> photoUrls;
 
@@ -94,6 +112,9 @@ class Profile extends Equatable {
 
   /// Is profile visible
   final bool isProfileVisible;
+
+  /// Is online
+  final bool isOnline;
 
   /// Created at
   final DateTime createdAt;
@@ -109,6 +130,8 @@ class Profile extends Equatable {
     this.lastName,
     required this.birthDate,
     this.birthTime,
+    required this.birthCity,
+    required this.birthCountry,
     required this.birthLocation,
     this.birthLatitude,
     this.birthLongitude,
@@ -119,9 +142,14 @@ class Profile extends Equatable {
     required this.gender,
     required this.zodiacSign,
     required this.lookingFor,
+    required this.minAgePreference,
+    required this.maxAgePreference,
+    required this.maxDistancePreference,
+    this.profilePhotoUrl,
     required this.photoUrls,
     required this.isProfileComplete,
     required this.isProfileVisible,
+    this.isOnline = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -141,6 +169,8 @@ class Profile extends Equatable {
     String? Function()? lastName,
     DateTime? birthDate,
     String? Function()? birthTime,
+    String? birthCity,
+    String? birthCountry,
     String? birthLocation,
     double? Function()? birthLatitude,
     double? Function()? birthLongitude,
@@ -151,9 +181,14 @@ class Profile extends Equatable {
     Gender? gender,
     ZodiacSign? zodiacSign,
     LookingFor? lookingFor,
+    int? minAgePreference,
+    int? maxAgePreference,
+    double? maxDistancePreference,
+    String? Function()? profilePhotoUrl,
     List<String>? photoUrls,
     bool? isProfileComplete,
     bool? isProfileVisible,
+    bool? isOnline,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -164,6 +199,8 @@ class Profile extends Equatable {
       lastName: lastName != null ? lastName() : this.lastName,
       birthDate: birthDate ?? this.birthDate,
       birthTime: birthTime != null ? birthTime() : this.birthTime,
+      birthCity: birthCity ?? this.birthCity,
+      birthCountry: birthCountry ?? this.birthCountry,
       birthLocation: birthLocation ?? this.birthLocation,
       birthLatitude:
           birthLatitude != null ? birthLatitude() : this.birthLatitude,
@@ -179,9 +216,16 @@ class Profile extends Equatable {
       gender: gender ?? this.gender,
       zodiacSign: zodiacSign ?? this.zodiacSign,
       lookingFor: lookingFor ?? this.lookingFor,
+      minAgePreference: minAgePreference ?? this.minAgePreference,
+      maxAgePreference: maxAgePreference ?? this.maxAgePreference,
+      maxDistancePreference:
+          maxDistancePreference ?? this.maxDistancePreference,
+      profilePhotoUrl:
+          profilePhotoUrl != null ? profilePhotoUrl() : this.profilePhotoUrl,
       photoUrls: photoUrls ?? this.photoUrls,
       isProfileComplete: isProfileComplete ?? this.isProfileComplete,
       isProfileVisible: isProfileVisible ?? this.isProfileVisible,
+      isOnline: isOnline ?? this.isOnline,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -198,6 +242,8 @@ class Profile extends Equatable {
     lastName: null,
     birthDate: _emptyDateTime,
     birthTime: null,
+    birthCity: '',
+    birthCountry: '',
     birthLocation: '',
     birthLatitude: null,
     birthLongitude: null,
@@ -208,9 +254,14 @@ class Profile extends Equatable {
     gender: Gender.preferNotToSay,
     zodiacSign: ZodiacSign.aries,
     lookingFor: LookingFor.everyone,
+    minAgePreference: 18,
+    maxAgePreference: 99,
+    maxDistancePreference: 100.0,
+    profilePhotoUrl: null,
     photoUrls: const [],
     isProfileComplete: false,
     isProfileVisible: false,
+    isOnline: false,
     createdAt: _emptyDateTime,
     updatedAt: _emptyDateTime,
   );
@@ -249,6 +300,8 @@ class Profile extends Equatable {
         lastName,
         birthDate,
         birthTime,
+        birthCity,
+        birthCountry,
         birthLocation,
         birthLatitude,
         birthLongitude,
@@ -259,9 +312,14 @@ class Profile extends Equatable {
         gender,
         zodiacSign,
         lookingFor,
+        minAgePreference,
+        maxAgePreference,
+        maxDistancePreference,
+        profilePhotoUrl,
         photoUrls,
         isProfileComplete,
         isProfileVisible,
+        isOnline,
         createdAt,
         updatedAt,
       ];

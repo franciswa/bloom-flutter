@@ -126,7 +126,8 @@ class Message extends Equatable {
   });
 
   /// Creates a new [Message] instance from JSON
-  factory Message.fromJson(Map<String, dynamic> json) => _$MessageFromJson(json);
+  factory Message.fromJson(Map<String, dynamic> json) =>
+      _$MessageFromJson(json);
 
   /// Converts this [Message] instance to JSON
   Map<String, dynamic> toJson() => _$MessageToJson(this);
@@ -162,13 +163,19 @@ class Message extends Equatable {
       type: type ?? this.type,
       status: status ?? this.status,
       mediaUrl: mediaUrl != null ? mediaUrl() : this.mediaUrl,
-      mediaThumbnailUrl: mediaThumbnailUrl != null ? mediaThumbnailUrl() : this.mediaThumbnailUrl,
+      mediaThumbnailUrl: mediaThumbnailUrl != null
+          ? mediaThumbnailUrl()
+          : this.mediaThumbnailUrl,
       mediaWidth: mediaWidth != null ? mediaWidth() : this.mediaWidth,
       mediaHeight: mediaHeight != null ? mediaHeight() : this.mediaHeight,
-      locationLatitude: locationLatitude != null ? locationLatitude() : this.locationLatitude,
-      locationLongitude: locationLongitude != null ? locationLongitude() : this.locationLongitude,
+      locationLatitude:
+          locationLatitude != null ? locationLatitude() : this.locationLatitude,
+      locationLongitude: locationLongitude != null
+          ? locationLongitude()
+          : this.locationLongitude,
       locationName: locationName != null ? locationName() : this.locationName,
-      dateSuggestionId: dateSuggestionId != null ? dateSuggestionId() : this.dateSuggestionId,
+      dateSuggestionId:
+          dateSuggestionId != null ? dateSuggestionId() : this.dateSuggestionId,
       chartId: chartId != null ? chartId() : this.chartId,
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
@@ -302,6 +309,12 @@ class Conversation extends Equatable {
   /// Last message
   final Message? lastMessage;
 
+  /// Last message text
+  final String? lastMessageText;
+
+  /// Last message timestamp
+  final DateTime? lastMessageTimestamp;
+
   /// Unread count for first user
   final int firstUserUnreadCount;
 
@@ -338,6 +351,8 @@ class Conversation extends Equatable {
     required this.firstUserId,
     required this.secondUserId,
     this.lastMessage,
+    this.lastMessageText,
+    this.lastMessageTimestamp,
     required this.firstUserUnreadCount,
     required this.secondUserUnreadCount,
     required this.firstUserMuted,
@@ -351,7 +366,8 @@ class Conversation extends Equatable {
   });
 
   /// Creates a new [Conversation] instance from JSON
-  factory Conversation.fromJson(Map<String, dynamic> json) => _$ConversationFromJson(json);
+  factory Conversation.fromJson(Map<String, dynamic> json) =>
+      _$ConversationFromJson(json);
 
   /// Converts this [Conversation] instance to JSON
   Map<String, dynamic> toJson() => _$ConversationToJson(this);
@@ -362,6 +378,8 @@ class Conversation extends Equatable {
     String? firstUserId,
     String? secondUserId,
     Message? Function()? lastMessage,
+    String? Function()? lastMessageText,
+    DateTime? lastMessageTimestamp,
     int? firstUserUnreadCount,
     int? secondUserUnreadCount,
     bool? firstUserMuted,
@@ -378,8 +396,12 @@ class Conversation extends Equatable {
       firstUserId: firstUserId ?? this.firstUserId,
       secondUserId: secondUserId ?? this.secondUserId,
       lastMessage: lastMessage != null ? lastMessage() : this.lastMessage,
+      lastMessageText:
+          lastMessageText != null ? lastMessageText() : this.lastMessageText,
+      lastMessageTimestamp: lastMessageTimestamp ?? this.lastMessageTimestamp,
       firstUserUnreadCount: firstUserUnreadCount ?? this.firstUserUnreadCount,
-      secondUserUnreadCount: secondUserUnreadCount ?? this.secondUserUnreadCount,
+      secondUserUnreadCount:
+          secondUserUnreadCount ?? this.secondUserUnreadCount,
       firstUserMuted: firstUserMuted ?? this.firstUserMuted,
       secondUserMuted: secondUserMuted ?? this.secondUserMuted,
       firstUserArchived: firstUserArchived ?? this.firstUserArchived,
@@ -400,6 +422,8 @@ class Conversation extends Equatable {
     firstUserId: '',
     secondUserId: '',
     lastMessage: null,
+    lastMessageText: null,
+    lastMessageTimestamp: null,
     firstUserUnreadCount: 0,
     secondUserUnreadCount: 0,
     firstUserMuted: false,
@@ -449,6 +473,8 @@ class Conversation extends Equatable {
         firstUserId,
         secondUserId,
         lastMessage,
+        lastMessageText,
+        lastMessageTimestamp,
         firstUserUnreadCount,
         secondUserUnreadCount,
         firstUserMuted,

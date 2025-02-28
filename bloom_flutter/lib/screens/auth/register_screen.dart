@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/routes.dart';
+import '../../config/app_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/validators.dart';
 import '../../utils/error_handling.dart';
+import '../../utils/helpers/ui_helpers.dart';
 import '../../widgets/auth/auth_header.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
@@ -47,7 +51,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please agree to the Terms of Service and Privacy Policy'),
+          content:
+              Text('Please agree to the Terms of Service and Privacy Policy'),
         ),
       );
       return;
@@ -69,15 +74,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           content: Text('Registration successful! Please verify your email.'),
         ),
       );
-      
-      context.go(AppRoutes.emailVerification, extra: _emailController.text.trim());
+
+      context.go(AppRoutes.emailVerification,
+          extra: _emailController.text.trim());
     } catch (e) {
       if (!mounted) return;
-      
-      showErrorDialog(
+
+      UIHelpers.showErrorDialog(
         context: context,
         title: 'Registration Failed',
-        message: getErrorMessage(e),
+        message: UIHelpers.getErrorMessage(e),
       );
     }
   }
@@ -149,7 +155,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
                         });
                       },
                     ),
@@ -184,7 +191,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     // Open terms of service
-                                    launchUrl(Uri.parse(AppConfig.appTermsOfServiceUrl));
+                                    launchUrl(Uri.parse(
+                                        AppConfig.appTermsOfServiceUrl));
                                   },
                               ),
                               const TextSpan(text: ' and '),
@@ -197,7 +205,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     // Open privacy policy
-                                    launchUrl(Uri.parse(AppConfig.appPrivacyPolicyUrl));
+                                    launchUrl(Uri.parse(
+                                        AppConfig.appPrivacyPolicyUrl));
                                   },
                               ),
                             ],
