@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/routes.dart';
+import '../../utils/error_handling.dart';
 import '../../models/message.dart';
 import '../../models/profile.dart';
 import '../../providers/auth_provider.dart';
@@ -10,8 +11,6 @@ import '../../providers/message_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
-import '../../utils/error_handling.dart';
-import '../../utils/helpers/date_helpers.dart';
 import '../../utils/helpers/ui_helpers.dart';
 import '../../widgets/common/loading_indicator.dart';
 import 'widgets/conversation_tile.dart';
@@ -70,7 +69,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         }
       } catch (e) {
         // Log error but continue preloading others
-        debugPrint('Error preloading profile: ${e.toString()}');
+        ErrorHandler.logError(e, hint: 'Error preloading profile');
       }
     }
   }
@@ -79,6 +78,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
     // Check cache first
     if (_profileCache.containsKey(userId)) {
       return _profileCache[userId];
+    }
+
+    // Store context and error handling function before async operation
+    final currentContext = context;
+
+    // Function to show error dialog
+    void showError(String message) {
+      UIHelpers.showErrorDialog(
+        context: currentContext,
+        title: 'Failed to load profile',
+        message: message,
+      );
     }
 
     // Load profile if not in cache
@@ -93,23 +104,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
       }
       return profile;
     } catch (e) {
-      showErrorDialog(context, 'Failed to load profile', e);
+      // Use the stored function to show error
+      showError(UIHelpers.getErrorMessage(e));
       return null;
     }
-  }
-
-  /// Show error dialog
-  void showErrorDialog(BuildContext context, String title, dynamic error) {
-    UIHelpers.showErrorDialog(
-      context: context,
-      title: title,
-      message: UIHelpers.getErrorMessage(error),
-    );
-  }
-
-  /// Get error message
-  String getErrorMessage(dynamic error) {
-    return ErrorHandler.getUserFriendlyErrorMessage(error);
   }
 
   @override
@@ -135,29 +133,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           }
 
           if (messageProvider.conversations.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 64,
-                    color: AppColors.iconTertiary,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No conversations yet',
-                    style: TextStyles.headline6,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Start matching with people to begin conversations',
-                    style: TextStyles.body2,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
+            return const _EmptyConversationsView();
           }
 
           return RefreshIndicator(
@@ -193,13 +169,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       builder: (context, snapshot) {
         // Show loading placeholder while loading
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: ListTile(
-              leading: CircleAvatar(),
-              title: LinearProgressIndicator(),
-            ),
-          );
+          return const _LoadingListTile();
         }
 
         // Skip if profile couldn't be loaded
@@ -217,5 +187,77 @@ class _MessagesScreenState extends State<MessagesScreen> {
         );
       },
     );
+  }
+}
+
+/// Empty conversations view
+class _EmptyConversationsView extends StatelessWidget {
+  /// Creates a new [_EmptyConversationsView] instance
+  const _EmptyConversationsView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.chat_bubble_outline,
+            size: 64,
+            color: AppColors.iconTertiary,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'No conversations yet',
+            style: TextStyles.headline6,
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Start matching with people to begin conversations',
+            style: TextStyles.body2,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Loading list tile widget
+class _LoadingListTile extends StatelessWidget {
+  /// Creates a new [_LoadingListTile] instance
+  const _LoadingListTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: ListTile(
+        leading: _EmptyAvatar(),
+        title: _LoadingIndicator(),
+      ),
+    );
+  }
+}
+
+/// Empty avatar widget
+class _EmptyAvatar extends StatelessWidget {
+  /// Creates a new [_EmptyAvatar] instance
+  const _EmptyAvatar();
+
+  @override
+  Widget build(BuildContext context) {
+    return const CircleAvatar();
+  }
+}
+
+/// Loading indicator widget
+class _LoadingIndicator extends StatelessWidget {
+  /// Creates a new [_LoadingIndicator] instance
+  const _LoadingIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return const LinearProgressIndicator();
   }
 }

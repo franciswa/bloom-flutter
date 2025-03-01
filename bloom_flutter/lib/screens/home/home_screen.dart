@@ -13,7 +13,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bloom'),
@@ -36,12 +36,12 @@ class HomeScreen extends StatelessWidget {
               size: 100,
             ),
             const SizedBox(height: 24),
-            Text(
+            const Text(
               'Welcome to Bloom!',
               style: TextStyles.headline2,
             ),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Your cosmic connection awaits',
               style: TextStyles.subtitle1,
             ),

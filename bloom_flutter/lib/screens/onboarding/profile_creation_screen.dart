@@ -3,8 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/routes.dart';
+import '../../models/profile.dart';
+import '../../models/astrology.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/text_styles.dart';
+import '../../utils/helpers/ui_helpers.dart';
 import '../../utils/validators.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
@@ -22,10 +26,15 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _displayNameController = TextEditingController();
   final _bioController = TextEditingController();
-  
+
   String? _selectedGender;
-  final List<String> _genderOptions = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-  
+  final List<String> _genderOptions = [
+    'Male',
+    'Female',
+    'Non-binary',
+    'Prefer not to say'
+  ];
+
   bool _isLoading = false;
 
   @override
@@ -42,27 +51,88 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
       });
 
       try {
-        final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-        
-        // In a real app, we would save the profile information
-        // For now, we'll just navigate to the next screen
-        
+        final profileProvider =
+            Provider.of<ProfileProvider>(context, listen: false);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+        if (authProvider.currentUser == null) {
+          throw Exception('User not authenticated');
+        }
+
+        // Convert gender string to Gender enum
+        Gender gender;
+        switch (_selectedGender) {
+          case 'Male':
+            gender = Gender.male;
+            break;
+          case 'Female':
+            gender = Gender.female;
+            break;
+          case 'Non-binary':
+            gender = Gender.nonBinary;
+            break;
+          default:
+            gender = Gender.preferNotToSay;
+        }
+
+        // Create a partial profile with the information we have so far
+        final profile = Profile(
+          userId: authProvider.currentUser!.id,
+          displayName: _displayNameController.text.trim(),
+          firstName: _displayNameController.text
+              .trim(), // Use display name as first name for now
+          lastName: null,
+          birthDate: DateTime.now().subtract(const Duration(
+              days: 365 *
+                  25)), // Default age, will be updated in birth info screen
+          birthTime: null,
+          birthCity: '', // Will be filled in birth info screen
+          birthCountry: '', // Will be filled in birth info screen
+          birthLocation: '', // Will be filled in birth info screen
+          birthLatitude: null,
+          birthLongitude: null,
+          currentLocation: null,
+          currentLatitude: null,
+          currentLongitude: null,
+          bio: _bioController.text.trim(),
+          gender: gender,
+          zodiacSign: ZodiacSign.aries, // Default, will be calculated later
+          lookingFor:
+              LookingFor.everyone, // Default, can be updated in preferences
+          minAgePreference: 18,
+          maxAgePreference: 99,
+          maxDistancePreference: 100.0,
+          profilePhotoUrl: null,
+          photoUrls: const [],
+          isProfileComplete: false, // Not complete until all steps are done
+          isProfileVisible: false, // Not visible until profile is complete
+          isOnline: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        // Save the profile
+        await profileProvider.createProfile(profile);
+
         setState(() {
           _isLoading = false;
         });
-        
-        context.go(AppRoutes.birthInformation);
+
+        if (mounted) {
+          context.go(AppRoutes.birthInformation);
+        }
       } catch (e) {
         setState(() {
           _isLoading = false;
         });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        if (mounted) {
+          UIHelpers.showErrorDialog(
+            context: context,
+            title: 'Error Saving Profile',
+            message: UIHelpers.getErrorMessage(e),
+          );
+        }
       }
     }
   }
@@ -81,17 +151,17 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Create Your Profile',
                   style: TextStyles.headline2,
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'Tell us a bit about yourself to get started.',
                   style: TextStyles.body1,
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Profile photo
                 Center(
                   child: Stack(
@@ -127,7 +197,7 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Display name
                 CustomTextField(
                   controller: _displayNameController,
@@ -137,7 +207,7 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
                   validator: Validators.validateRequired,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Gender
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
@@ -168,7 +238,7 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Bio
                 CustomTextField(
                   controller: _bioController,
@@ -179,7 +249,7 @@ class _ProfileCreationScreenState extends State<ProfileCreationScreen> {
                   validator: Validators.validateRequired,
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Save button
                 CustomButton(
                   text: 'Continue',

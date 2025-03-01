@@ -55,7 +55,7 @@ class BloomApp extends StatelessWidget {
         // Apply text scaling
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
-            textScaleFactor: 1.0,
+            textScaler: const TextScaler.linear(1.0),
           ),
           child: child!,
         );
@@ -73,7 +73,8 @@ class BloomAppWithProviders extends StatefulWidget {
   State<BloomAppWithProviders> createState() => _BloomAppWithProvidersState();
 }
 
-class _BloomAppWithProvidersState extends State<BloomAppWithProviders> with WidgetsBindingObserver {
+class _BloomAppWithProvidersState extends State<BloomAppWithProviders>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -89,7 +90,7 @@ class _BloomAppWithProvidersState extends State<BloomAppWithProviders> with Widg
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     switch (state) {
       case AppLifecycleState.resumed:
         // App came to foreground

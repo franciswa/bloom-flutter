@@ -604,7 +604,7 @@ class UIHelpers {
 
   /// Get text scale factor
   static double getTextScaleFactor(BuildContext context) {
-    return MediaQuery.of(context).textScaleFactor;
+    return MediaQuery.of(context).textScaler.scale(1.0);
   }
 
   /// Get navigation bar height

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/chart.dart';
-import '../models/profile.dart';
 import '../models/astrology.dart' as astrology;
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
@@ -166,21 +165,6 @@ class ChartProvider extends ChangeNotifier {
     try {
       final userId = _authProvider.currentUser!.id;
 
-      // Create a new chart object
-      final chart = Chart(
-        userId: userId,
-        birthDate: birthDate,
-        birthTime: birthTime,
-        birthLocation: birthLocation,
-        birthLatitude: birthLatitude,
-        birthLongitude: birthLongitude,
-        sunSign: ZodiacSign.aries, // Will be calculated by service
-        moonSign: ZodiacSign.aries, // Will be calculated by service
-        planetaryPositions: [], // Will be populated by service
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
       // Use the chart service to calculate and create the chart
       _currentUserChart =
           await ServiceRegistry.chartService.calculateNatalChart(
@@ -219,20 +203,10 @@ class ChartProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Create an updated chart object
-      final updatedChart = _currentUserChart!.copyWith(
-        birthDate: birthDate,
-        birthTime: () => birthTime,
-        birthLocation: birthLocation,
-        birthLatitude: () => birthLatitude,
-        birthLongitude: () => birthLongitude,
-        updatedAt: DateTime.now(),
-      );
-
       // Use the chart service to recalculate and update the chart
       _currentUserChart =
           await ServiceRegistry.chartService.calculateNatalChart(
-        userId: updatedChart.userId,
+        userId: _currentUserChart!.userId,
         birthDate: birthDate,
         birthTime: birthTime,
         birthLocation: birthLocation,

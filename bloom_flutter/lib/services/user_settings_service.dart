@@ -52,7 +52,7 @@ class UserSettingsService {
   /// Create or update user settings
   Future<UserSettings> createOrUpdateUserSettings(UserSettings settings) async {
     final existingSettings = await getUserSettingsByUserId(settings.userId);
-    
+
     if (existingSettings != null) {
       return await updateUserSettings(settings);
     } else {
@@ -61,27 +61,14 @@ class UserSettingsService {
   }
 
   /// Update theme mode
-  Future<UserSettings> updateThemeMode(String userId, ThemeMode themeMode) async {
+  Future<UserSettings> updateThemeMode(
+      String userId, ThemeMode themeMode) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
+        UserSettings.defaultSettings(userId).copyWith(
           themeMode: themeMode,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -95,27 +82,13 @@ class UserSettingsService {
   }
 
   /// Update language
-  Future<UserSettings> updateLanguage(String userId, String language) async {
+  Future<UserSettings> updateLanguage(String userId, Language language) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
+        UserSettings.defaultSettings(userId).copyWith(
           language: language,
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -129,27 +102,14 @@ class UserSettingsService {
   }
 
   /// Update distance unit
-  Future<UserSettings> updateDistanceUnit(String userId, DistanceUnit distanceUnit) async {
+  Future<UserSettings> updateDistanceUnit(
+      String userId, DistanceUnit distanceUnit) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
+        UserSettings.defaultSettings(userId).copyWith(
           distanceUnit: distanceUnit,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -163,27 +123,14 @@ class UserSettingsService {
   }
 
   /// Update temperature unit
-  Future<UserSettings> updateTemperatureUnit(String userId, TemperatureUnit temperatureUnit) async {
+  Future<UserSettings> updateTemperatureUnit(
+      String userId, TemperatureUnit temperatureUnit) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
+        UserSettings.defaultSettings(userId).copyWith(
           temperatureUnit: temperatureUnit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -197,27 +144,14 @@ class UserSettingsService {
   }
 
   /// Update time format
-  Future<UserSettings> updateTimeFormat(String userId, TimeFormat timeFormat) async {
+  Future<UserSettings> updateTimeFormat(
+      String userId, TimeFormat timeFormat) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
+        UserSettings.defaultSettings(userId).copyWith(
           timeFormat: timeFormat,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -231,27 +165,14 @@ class UserSettingsService {
   }
 
   /// Update date format
-  Future<UserSettings> updateDateFormat(String userId, DateFormat dateFormat) async {
+  Future<UserSettings> updateDateFormat(
+      String userId, DateFormat dateFormat) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
+        UserSettings.defaultSettings(userId).copyWith(
           dateFormat: dateFormat,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -265,27 +186,14 @@ class UserSettingsService {
   }
 
   /// Update push notifications enabled
-  Future<UserSettings> updatePushNotificationsEnabled(String userId, bool enabled) async {
+  Future<UserSettings> updatePushNotificationsEnabled(
+      String userId, bool enabled) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
+        UserSettings.defaultSettings(userId).copyWith(
           pushNotificationsEnabled: enabled,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -299,33 +207,41 @@ class UserSettingsService {
   }
 
   /// Update email notifications enabled
-  Future<UserSettings> updateEmailNotificationsEnabled(String userId, bool enabled) async {
+  Future<UserSettings> updateEmailNotificationsEnabled(
+      String userId, bool enabled) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
+        UserSettings.defaultSettings(userId).copyWith(
           emailNotificationsEnabled: enabled,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
       return await updateUserSettings(
         settings.copyWith(
           emailNotificationsEnabled: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update in-app notifications enabled
+  Future<UserSettings> updateInAppNotificationsEnabled(
+      String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          inAppNotificationsEnabled: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          inAppNotificationsEnabled: enabled,
           updatedAt: DateTime.now(),
         ),
       );
@@ -333,27 +249,14 @@ class UserSettingsService {
   }
 
   /// Update SMS notifications enabled
-  Future<UserSettings> updateSmsNotificationsEnabled(String userId, bool enabled) async {
+  Future<UserSettings> updateSmsNotificationsEnabled(
+      String userId, bool enabled) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
+        UserSettings.defaultSettings(userId).copyWith(
           smsNotificationsEnabled: enabled,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -366,28 +269,36 @@ class UserSettingsService {
     }
   }
 
-  /// Update location sharing enabled
-  Future<UserSettings> updateLocationSharingEnabled(String userId, bool enabled) async {
+  /// Update location services enabled
+  Future<UserSettings> updateLocationServicesEnabled(
+      String userId, bool enabled) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: enabled,
-          activitySharingEnabled: true,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
+        UserSettings.defaultSettings(userId).copyWith(
+          locationServicesEnabled: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          locationServicesEnabled: enabled,
           updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update location sharing enabled
+  Future<UserSettings> updateLocationSharingEnabled(
+      String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          locationSharingEnabled: enabled,
         ),
       );
     } else {
@@ -401,27 +312,14 @@ class UserSettingsService {
   }
 
   /// Update activity sharing enabled
-  Future<UserSettings> updateActivitySharingEnabled(String userId, bool enabled) async {
+  Future<UserSettings> updateActivitySharingEnabled(
+      String userId, bool enabled) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
+        UserSettings.defaultSettings(userId).copyWith(
           activitySharingEnabled: enabled,
-          profileVisibilityEnabled: true,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -435,27 +333,14 @@ class UserSettingsService {
   }
 
   /// Update profile visibility enabled
-  Future<UserSettings> updateProfileVisibilityEnabled(String userId, bool enabled) async {
+  Future<UserSettings> updateProfileVisibilityEnabled(
+      String userId, bool enabled) async {
     final settings = await getUserSettingsByUserId(userId);
-    
+
     if (settings == null) {
       return await createUserSettings(
-        UserSettings(
-          userId: userId,
-          themeMode: ThemeMode.system,
-          language: 'en',
-          distanceUnit: DistanceUnit.miles,
-          temperatureUnit: TemperatureUnit.fahrenheit,
-          timeFormat: TimeFormat.twelveHour,
-          dateFormat: DateFormat.monthDayYear,
-          pushNotificationsEnabled: true,
-          emailNotificationsEnabled: true,
-          smsNotificationsEnabled: false,
-          locationSharingEnabled: true,
-          activitySharingEnabled: true,
+        UserSettings.defaultSettings(userId).copyWith(
           profileVisibilityEnabled: enabled,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
         ),
       );
     } else {
@@ -468,24 +353,213 @@ class UserSettingsService {
     }
   }
 
+  /// Update incognito mode enabled
+  Future<UserSettings> updateIncognitoModeEnabled(
+      String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          incognitoModeEnabled: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          incognitoModeEnabled: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show online status
+  Future<UserSettings> updateShowOnlineStatus(
+      String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showOnlineStatus: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showOnlineStatus: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show last active
+  Future<UserSettings> updateShowLastActive(String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showLastActive: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showLastActive: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show read receipts
+  Future<UserSettings> updateShowReadReceipts(
+      String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showReadReceipts: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showReadReceipts: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show typing indicators
+  Future<UserSettings> updateShowTypingIndicators(
+      String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showTypingIndicators: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showTypingIndicators: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show distance
+  Future<UserSettings> updateShowDistance(String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showDistance: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showDistance: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show age
+  Future<UserSettings> updateShowAge(String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showAge: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showAge: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show zodiac sign
+  Future<UserSettings> updateShowZodiacSign(String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showZodiacSign: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showZodiacSign: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update show compatibility score
+  Future<UserSettings> updateShowCompatibilityScore(
+      String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          showCompatibilityScore: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          showCompatibilityScore: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  /// Update auto play videos
+  Future<UserSettings> updateAutoPlayVideos(String userId, bool enabled) async {
+    final settings = await getUserSettingsByUserId(userId);
+
+    if (settings == null) {
+      return await createUserSettings(
+        UserSettings.defaultSettings(userId).copyWith(
+          autoPlayVideos: enabled,
+        ),
+      );
+    } else {
+      return await updateUserSettings(
+        settings.copyWith(
+          autoPlayVideos: enabled,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
   /// Get default user settings
   UserSettings getDefaultUserSettings(String userId) {
-    return UserSettings(
-      userId: userId,
-      themeMode: ThemeMode.system,
-      language: 'en',
-      distanceUnit: DistanceUnit.miles,
-      temperatureUnit: TemperatureUnit.fahrenheit,
-      timeFormat: TimeFormat.twelveHour,
-      dateFormat: DateFormat.monthDayYear,
-      pushNotificationsEnabled: true,
-      emailNotificationsEnabled: true,
-      smsNotificationsEnabled: false,
-      locationSharingEnabled: true,
-      activitySharingEnabled: true,
-      profileVisibilityEnabled: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+    return UserSettings.defaultSettings(userId);
   }
 }

@@ -74,7 +74,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
       await messageProvider.setCurrentConversation(widget.id);
     } catch (e) {
       if (!mounted) return;
-      showErrorDialog(context, 'Failed to load conversation', e);
+      UIHelpers.showErrorDialog(
+        context: context,
+        title: 'Failed to load conversation',
+        message: UIHelpers.getErrorMessage(e),
+      );
     }
   }
 
@@ -121,7 +125,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
       await messageProvider.sendMessage(text: text);
     } catch (e) {
       if (!mounted) return;
-      showErrorDialog(context, 'Failed to send message', e);
+      UIHelpers.showErrorDialog(
+        context: context,
+        title: 'Failed to send message',
+        message: UIHelpers.getErrorMessage(e),
+      );
     }
   }
 
@@ -150,27 +158,17 @@ class _ConversationScreenState extends State<ConversationScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      showErrorDialog(context, 'Failed to send image', e);
+      UIHelpers.showErrorDialog(
+        context: context,
+        title: 'Failed to send image',
+        message: UIHelpers.getErrorMessage(e),
+      );
     }
   }
 
   // Cache for other user profiles
   final Map<String, Profile?> _otherUserProfiles = {};
   String _otherUserName = 'Chat';
-
-  /// Show error dialog
-  void showErrorDialog(BuildContext context, String title, dynamic error) {
-    UIHelpers.showErrorDialog(
-      context: context,
-      title: title,
-      message: UIHelpers.getErrorMessage(error),
-    );
-  }
-
-  /// Get error message
-  String getErrorMessage(dynamic error) {
-    return ErrorHandler.getUserFriendlyErrorMessage(error);
-  }
 
   Future<void> _loadOtherUserProfile() async {
     final messageProvider =

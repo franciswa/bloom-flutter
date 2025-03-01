@@ -58,12 +58,15 @@ class UserSettingsProvider extends ChangeNotifier {
     }
 
     final userId = _authProvider.currentUser!.id;
-    _userSettings = await ServiceRegistry.userSettingsService.getUserSettingsByUserId(userId);
+    _userSettings = await ServiceRegistry.userSettingsService
+        .getUserSettingsByUserId(userId);
 
     // Create default settings if none exist
     if (_userSettings == null) {
-      _userSettings = ServiceRegistry.userSettingsService.getDefaultUserSettings(userId);
-      await ServiceRegistry.userSettingsService.createUserSettings(_userSettings!);
+      _userSettings =
+          ServiceRegistry.userSettingsService.getDefaultUserSettings(userId);
+      await ServiceRegistry.userSettingsService
+          .createUserSettings(_userSettings!);
     }
 
     // Update theme provider
@@ -97,11 +100,12 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.createUserSettings(settings);
-      
+      _userSettings = await ServiceRegistry.userSettingsService
+          .createUserSettings(settings);
+
       // Update theme provider
       _themeProvider.updateFromUserSettings(_userSettings!);
-      
+
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -119,11 +123,12 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateUserSettings(settings);
-      
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateUserSettings(settings);
+
       // Update theme provider
       _themeProvider.updateFromUserSettings(_userSettings!);
-      
+
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -141,11 +146,12 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.createOrUpdateUserSettings(settings);
-      
+      _userSettings = await ServiceRegistry.userSettingsService
+          .createOrUpdateUserSettings(settings);
+
       // Update theme provider
       _themeProvider.updateFromUserSettings(_userSettings!);
-      
+
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -167,12 +173,13 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await ServiceRegistry.userSettingsService.deleteUserSettings(_userSettings!.userId);
+      await ServiceRegistry.userSettingsService
+          .deleteUserSettings(_userSettings!.userId);
       _userSettings = null;
-      
+
       // Update theme provider
       _themeProvider.setUserId(null);
-      
+
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -198,10 +205,10 @@ class UserSettingsProvider extends ChangeNotifier {
         _userSettings!.userId,
         themeMode,
       );
-      
+
       // Update theme provider
       _themeProvider.updateFromUserSettings(_userSettings!);
-      
+
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -213,7 +220,7 @@ class UserSettingsProvider extends ChangeNotifier {
   }
 
   /// Update language
-  Future<void> updateLanguage(String language) async {
+  Future<void> updateLanguage(Language language) async {
     if (_userSettings == null) {
       return;
     }
@@ -248,7 +255,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateDistanceUnit(
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateDistanceUnit(
         _userSettings!.userId,
         distanceUnit,
       );
@@ -273,7 +281,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateTemperatureUnit(
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateTemperatureUnit(
         _userSettings!.userId,
         temperatureUnit,
       );
@@ -298,7 +307,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateTimeFormat(
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateTimeFormat(
         _userSettings!.userId,
         timeFormat,
       );
@@ -323,7 +333,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateDateFormat(
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateDateFormat(
         _userSettings!.userId,
         dateFormat,
       );
@@ -348,7 +359,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updatePushNotificationsEnabled(
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updatePushNotificationsEnabled(
         _userSettings!.userId,
         enabled,
       );
@@ -373,7 +385,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateEmailNotificationsEnabled(
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateEmailNotificationsEnabled(
         _userSettings!.userId,
         enabled,
       );
@@ -398,7 +411,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateSmsNotificationsEnabled(
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateSmsNotificationsEnabled(
         _userSettings!.userId,
         enabled,
       );
@@ -423,7 +437,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateLocationSharingEnabled(
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateLocationSharingEnabled(
         _userSettings!.userId,
         enabled,
       );
@@ -448,7 +463,8 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateActivitySharingEnabled(
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateActivitySharingEnabled(
         _userSettings!.userId,
         enabled,
       );
@@ -473,7 +489,319 @@ class UserSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _userSettings = await ServiceRegistry.userSettingsService.updateProfileVisibilityEnabled(
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateProfileVisibilityEnabled(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update in-app notifications enabled
+  Future<void> updateInAppNotificationsEnabled(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateInAppNotificationsEnabled(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update location services enabled
+  Future<void> updateLocationServicesEnabled(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateLocationServicesEnabled(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update incognito mode enabled
+  Future<void> updateIncognitoModeEnabled(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateIncognitoModeEnabled(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show online status
+  Future<void> updateShowOnlineStatus(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateShowOnlineStatus(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show last active
+  Future<void> updateShowLastActive(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateShowLastActive(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show read receipts
+  Future<void> updateShowReadReceipts(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateShowReadReceipts(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show typing indicators
+  Future<void> updateShowTypingIndicators(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateShowTypingIndicators(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show distance
+  Future<void> updateShowDistance(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateShowDistance(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show age
+  Future<void> updateShowAge(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings = await ServiceRegistry.userSettingsService.updateShowAge(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show zodiac sign
+  Future<void> updateShowZodiacSign(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateShowZodiacSign(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update show compatibility score
+  Future<void> updateShowCompatibilityScore(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings = await ServiceRegistry.userSettingsService
+          .updateShowCompatibilityScore(
+        _userSettings!.userId,
+        enabled,
+      );
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = e.toString();
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update auto play videos
+  Future<void> updateAutoPlayVideos(bool enabled) async {
+    if (_userSettings == null) {
+      return;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _userSettings =
+          await ServiceRegistry.userSettingsService.updateAutoPlayVideos(
         _userSettings!.userId,
         enabled,
       );

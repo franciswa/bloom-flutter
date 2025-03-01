@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../utils/error_handling.dart';
+
 /// Cache service
 class CacheService {
   /// Cache box
@@ -19,7 +21,7 @@ class CacheService {
   static Future<void> initialize() async {
     final appDocumentDir = await getApplicationDocumentsDirectory();
     await Hive.initFlutter(appDocumentDir.path);
-    
+
     _cacheBox = await Hive.openBox('cache');
     _expirationBox = await Hive.openBox('cache_expiration');
   }
@@ -31,8 +33,10 @@ class CacheService {
     int expirationSeconds = defaultExpirationSeconds,
   }) async {
     // Calculate expiration time
-    final expirationTime = DateTime.now().add(Duration(seconds: expirationSeconds)).millisecondsSinceEpoch;
-    
+    final expirationTime = DateTime.now()
+        .add(Duration(seconds: expirationSeconds))
+        .millisecondsSinceEpoch;
+
     // Store value and expiration time
     await _cacheBox.put(key, _encodeValue(value));
     await _expirationBox.put(key, expirationTime);
@@ -47,18 +51,19 @@ class CacheService {
     if (!_cacheBox.containsKey(key)) {
       return null;
     }
-    
+
     // Check expiration
     if (checkExpiration) {
       final expirationTime = _expirationBox.get(key) as int?;
-      if (expirationTime == null || expirationTime < DateTime.now().millisecondsSinceEpoch) {
+      if (expirationTime == null ||
+          expirationTime < DateTime.now().millisecondsSinceEpoch) {
         // Cache expired, remove it
         _cacheBox.delete(key);
         _expirationBox.delete(key);
         return null;
       }
     }
-    
+
     // Return value
     return _decodeValue<T>(_cacheBox.get(key));
   }
@@ -86,7 +91,9 @@ class CacheService {
     int expirationSeconds = defaultExpirationSeconds,
   }) async {
     if (_cacheBox.containsKey(key)) {
-      final expirationTime = DateTime.now().add(Duration(seconds: expirationSeconds)).millisecondsSinceEpoch;
+      final expirationTime = DateTime.now()
+          .add(Duration(seconds: expirationSeconds))
+          .millisecondsSinceEpoch;
       await _expirationBox.put(key, expirationTime);
     }
   }
@@ -115,10 +122,10 @@ class CacheService {
     if (T == String) {
       return value as T;
     }
-    
+
     try {
       final decoded = jsonDecode(value);
-      
+
       if (decoded is T) {
         return decoded;
       } else if (T == List<dynamic>) {
@@ -129,7 +136,7 @@ class CacheService {
         return null;
       }
     } catch (e) {
-      debugPrint('Error decoding cache value: $e');
+      ErrorHandler.logError(e, hint: 'Error decoding cache value');
       return null;
     }
   }
@@ -139,16 +146,16 @@ class CacheService {
 class CacheManager<T> {
   /// Cache key prefix
   final String keyPrefix;
-  
+
   /// Expiration duration in seconds
   final int expirationSeconds;
-  
+
   /// Fetch data function
   final Future<T> Function() fetchData;
-  
+
   /// To JSON function
   final Map<String, dynamic> Function(T data) toJson;
-  
+
   /// From JSON function
   final T Function(Map<String, dynamic> json) fromJson;
 
@@ -163,8 +170,8 @@ class CacheManager<T> {
 
   /// Get data
   Future<T> getData({bool forceRefresh = false}) async {
-    final cacheKey = '$keyPrefix';
-    
+    final cacheKey = keyPrefix;
+
     // Check cache if not forcing refresh
     if (!forceRefresh) {
       final cachedData = CacheService.get<Map<String, dynamic>>(key: cacheKey);
@@ -172,22 +179,22 @@ class CacheManager<T> {
         return fromJson(cachedData);
       }
     }
-    
+
     // Fetch fresh data
     final data = await fetchData();
-    
+
     // Cache data
     await CacheService.set(
       key: cacheKey,
       value: toJson(data),
       expirationSeconds: expirationSeconds,
     );
-    
+
     return data;
   }
 
   /// Invalidate cache
   Future<void> invalidateCache() async {
-    await CacheService.remove('$keyPrefix');
+    await CacheService.remove(keyPrefix);
   }
 }

@@ -48,16 +48,16 @@ class AnalyticsRouteObserver extends NavigatorObserver {
     if (screenName != null) {
       // Extract route parameters if available
       final Map<String, dynamic> properties = {};
-      
+
       // For MaterialPageRoute with extra data
       if (route.settings.arguments != null) {
         properties['arguments'] = route.settings.arguments.toString();
       }
-      
+
       // Extract path parameters from the route name if it contains them
       if (route.settings.name != null) {
         final name = route.settings.name!;
-        
+
         // For routes with parameters in the name (e.g., "MatchDetails/123")
         if (name.contains('/')) {
           final parts = name.split('/');
@@ -66,7 +66,7 @@ class AnalyticsRouteObserver extends NavigatorObserver {
           }
         }
       }
-      
+
       AnalyticsService.trackScreenView(screenName, properties: properties);
     }
   }
@@ -75,22 +75,20 @@ class AnalyticsRouteObserver extends NavigatorObserver {
     if (route.settings.name != null) {
       return route.settings.name;
     }
-    
+
     // Try to get screen name from route settings
     final routeSettings = route.settings;
-    if (routeSettings is RouteSettings) {
-      final name = routeSettings.name;
-      if (name != null && name.isNotEmpty) {
-        return name;
-      }
+    final name = routeSettings.name;
+    if (name != null && name.isNotEmpty) {
+      return name;
     }
-    
+
     // Try to get screen name from route
     if (route is MaterialPageRoute) {
       final widget = route.builder(route.navigator!.context);
       return widget.runtimeType.toString();
     }
-    
+
     return null;
   }
 }
@@ -106,7 +104,7 @@ class AppRouter {
 
     // Create analytics observer
     final analyticsObserver = AnalyticsRouteObserver();
-    
+
     return GoRouter(
       initialLocation: AppRoutes.splash,
       debugLogDiagnostics: true,
@@ -119,7 +117,7 @@ class AppRouter {
           errorSource: 'Router',
           stackTrace: StackTrace.current,
         );
-        
+
         // Redirect to splash screen on error
         return router.go(AppRoutes.splash);
       },
@@ -127,11 +125,11 @@ class AppRouter {
         // Simplified redirect logic
         final isInitialized = authProvider.currentUser != null;
         final isSplash = state.uri.path == AppRoutes.splash;
-        final isAuthRoute = state.uri.path == AppRoutes.login || 
-                           state.uri.path == AppRoutes.register || 
-                           state.uri.path == AppRoutes.forgotPassword || 
-                           state.uri.path == AppRoutes.resetPassword || 
-                           state.uri.path == AppRoutes.emailVerification;
+        final isAuthRoute = state.uri.path == AppRoutes.login ||
+            state.uri.path == AppRoutes.register ||
+            state.uri.path == AppRoutes.forgotPassword ||
+            state.uri.path == AppRoutes.resetPassword ||
+            state.uri.path == AppRoutes.emailVerification;
 
         // If not initialized, stay on splash screen
         if (!isInitialized && !isSplash && !isAuthRoute) {
@@ -192,14 +190,14 @@ class AppRouter {
             return ConversationScreen(id: id);
           },
         ),
-        
+
         // Home route
         GoRoute(
           path: AppRoutes.home,
           name: 'Home',
           builder: (context, state) => const HomeScreen(),
         ),
-        
+
         // Onboarding routes
         GoRoute(
           path: AppRoutes.onboarding,
@@ -221,7 +219,7 @@ class AppRouter {
           name: 'Questionnaire',
           builder: (context, state) => const QuestionnaireScreen(),
         ),
-        
+
         // Placeholder route for all other paths
         GoRoute(
           path: '/:path',
@@ -233,7 +231,8 @@ class AppRouter {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('The screen "${state.uri.path}" is not yet implemented'),
+                  Text(
+                      'The screen \'${state.uri.path}\' is not yet implemented'),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () => context.go(AppRoutes.splash),

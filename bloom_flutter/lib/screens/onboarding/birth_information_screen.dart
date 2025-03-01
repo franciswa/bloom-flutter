@@ -3,9 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../config/routes.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
+import '../../utils/helpers/ui_helpers.dart';
 import '../../utils/validators.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
@@ -25,7 +27,7 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
   final _birthTimeController = TextEditingController();
   final _birthCityController = TextEditingController();
   final _birthCountryController = TextEditingController();
-  
+
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isLoading = false;
@@ -42,15 +44,17 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now().subtract(const Duration(days: 365 * 18)),
+      initialDate: _selectedDate ??
+          DateTime.now().subtract(const Duration(days: 365 * 18)),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-    
+
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
-        _birthDateController.text = '${picked.month}/${picked.day}/${picked.year}';
+        _birthDateController.text =
+            '${picked.month}/${picked.day}/${picked.year}';
       });
     }
   }
@@ -60,7 +64,7 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
       context: context,
       initialTime: _selectedTime ?? TimeOfDay.now(),
     );
-    
+
     if (picked != null && picked != _selectedTime) {
       setState(() {
         _selectedTime = picked;
@@ -76,27 +80,62 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
       });
 
       try {
-        final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-        
-        // In a real app, we would save the birth information to the profile
-        // For now, we'll just navigate to the next screen
-        
+        final profileProvider =
+            Provider.of<ProfileProvider>(context, listen: false);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+        if (authProvider.currentUser == null || !profileProvider.hasProfile) {
+          throw Exception('User not authenticated or profile not created');
+        }
+
+        // Get current profile
+        final currentProfile = profileProvider.currentProfile!;
+
+        // Create birth location string
+        final birthLocation =
+            '${_birthCityController.text.trim()}, ${_birthCountryController.text.trim()}';
+
+        // Format birth time as HH:MM
+        String? birthTime;
+        if (_selectedTime != null) {
+          final hour = _selectedTime!.hour.toString().padLeft(2, '0');
+          final minute = _selectedTime!.minute.toString().padLeft(2, '0');
+          birthTime = '$hour:$minute';
+        }
+
+        // Update profile with birth information
+        final updatedProfile = currentProfile.copyWith(
+          birthDate: _selectedDate ?? currentProfile.birthDate,
+          birthTime: () => birthTime,
+          birthCity: _birthCityController.text.trim(),
+          birthCountry: _birthCountryController.text.trim(),
+          birthLocation: birthLocation,
+          // We would normally set latitude and longitude here based on geocoding the location
+          // For now, we'll leave them as null
+        );
+
+        // Save updated profile
+        await profileProvider.updateProfile(updatedProfile);
+
         setState(() {
           _isLoading = false;
         });
-        
-        context.go(AppRoutes.questionnaire);
+
+        if (mounted) {
+          context.go(AppRoutes.questionnaire);
+        }
       } catch (e) {
         setState(() {
           _isLoading = false;
         });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        if (mounted) {
+          UIHelpers.showErrorDialog(
+            context: context,
+            title: 'Error Saving Birth Information',
+            message: UIHelpers.getErrorMessage(e),
+          );
+        }
       }
     }
   }
@@ -125,7 +164,7 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
                   style: TextStyles.body1,
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Birth date
                 CustomTextField(
                   controller: _birthDateController,
@@ -137,7 +176,7 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
                   validator: Validators.validateRequired,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Birth time
                 CustomTextField(
                   controller: _birthTimeController,
@@ -149,7 +188,7 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
                   validator: Validators.validateTimeOfBirth,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Birth city
                 CustomTextField(
                   controller: _birthCityController,
@@ -159,7 +198,7 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
                   validator: Validators.validateRequired,
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Birth country
                 CustomTextField(
                   controller: _birthCountryController,
@@ -169,7 +208,7 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
                   validator: Validators.validateRequired,
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Save button
                 CustomButton(
                   text: 'Continue',

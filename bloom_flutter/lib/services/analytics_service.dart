@@ -4,6 +4,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../config/app_config.dart';
 import '../models/user.dart';
+import '../utils/error_handling.dart';
 
 /// Analytics service for tracking user events and errors
 class AnalyticsService {
@@ -31,9 +32,14 @@ class AnalyticsService {
       );
 
       _isInitialized = true;
-      debugPrint('Analytics service initialized');
+      if (kDebugMode) {
+        ErrorHandler.logError('Analytics service initialized',
+            hint: 'Analytics');
+      }
     } catch (e, stackTrace) {
-      debugPrint('Failed to initialize analytics service: $e');
+      ErrorHandler.logError(e,
+          stackTrace: stackTrace,
+          hint: 'Failed to initialize analytics service');
       await Sentry.captureException(e, stackTrace: stackTrace);
     }
   }
@@ -46,9 +52,12 @@ class AnalyticsService {
 
     try {
       await _posthog.identify(userId: user.id);
-      debugPrint('User identified: ${user.id}');
+      if (kDebugMode) {
+        ErrorHandler.logError('User identified: ${user.id}', hint: 'Analytics');
+      }
     } catch (e, stackTrace) {
-      debugPrint('Failed to identify user: $e');
+      ErrorHandler.logError(e,
+          stackTrace: stackTrace, hint: 'Failed to identify user');
       await Sentry.captureException(e, stackTrace: stackTrace);
     }
   }
@@ -61,9 +70,12 @@ class AnalyticsService {
 
     try {
       await _posthog.reset();
-      debugPrint('User reset');
+      if (kDebugMode) {
+        ErrorHandler.logError('User reset', hint: 'Analytics');
+      }
     } catch (e, stackTrace) {
-      debugPrint('Failed to reset user: $e');
+      ErrorHandler.logError(e,
+          stackTrace: stackTrace, hint: 'Failed to reset user');
       await Sentry.captureException(e, stackTrace: stackTrace);
     }
   }
@@ -80,9 +92,12 @@ class AnalyticsService {
         eventName: eventName,
         properties: properties as Map<String, Object>?,
       );
-      debugPrint('Event tracked: $eventName');
+      if (kDebugMode) {
+        ErrorHandler.logError('Event tracked: $eventName', hint: 'Analytics');
+      }
     } catch (e, stackTrace) {
-      debugPrint('Failed to track event: $e');
+      ErrorHandler.logError(e,
+          stackTrace: stackTrace, hint: 'Failed to track event');
       await Sentry.captureException(e, stackTrace: stackTrace);
     }
   }
@@ -104,9 +119,13 @@ class AnalyticsService {
         screenName: screenName,
         properties: screenProperties as Map<String, Object>?,
       );
-      debugPrint('Screen view tracked: $screenName');
+      if (kDebugMode) {
+        ErrorHandler.logError('Screen view tracked: $screenName',
+            hint: 'Analytics');
+      }
     } catch (e, stackTrace) {
-      debugPrint('Failed to track screen view: $e');
+      ErrorHandler.logError(e,
+          stackTrace: stackTrace, hint: 'Failed to track screen view');
       await Sentry.captureException(e, stackTrace: stackTrace);
     }
   }
