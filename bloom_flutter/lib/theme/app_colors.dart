@@ -6,24 +6,24 @@ class AppColors {
   const AppColors._();
 
   // Primary colors
-  /// Primary color
-  static const Color primary = Color(0xFF6200EE);
+  /// Primary color - Light Green
+  static const Color primary = Color(0xFFBAF2BB);
 
-  /// Primary variant color
-  static const Color primaryVariant = Color(0xFF3700B3);
+  /// Primary variant color - Darker Green
+  static const Color primaryVariant = Color(0xFF8AD18B);
 
-  /// Primary light color
-  static const Color primaryLight = Color(0xFFBB86FC);
+  /// Primary light color - Lighter Green
+  static const Color primaryLight = Color(0xFFDCF9DD);
 
   // Secondary colors
-  /// Secondary color
-  static const Color secondary = Color(0xFF03DAC6);
+  /// Secondary color - Off-White
+  static const Color secondary = Color(0xFFFFE8D7);
 
-  /// Secondary variant color
-  static const Color secondaryVariant = Color(0xFF018786);
+  /// Secondary variant color - Darker Off-White
+  static const Color secondaryVariant = Color(0xFFEED3C0);
 
-  /// Secondary light color
-  static const Color secondaryLight = Color(0xFFCEFAF8);
+  /// Secondary light color - Lighter Off-White
+  static const Color secondaryLight = Color(0xFFFFF5ED);
 
   // Tertiary colors
   /// Tertiary color
@@ -62,10 +62,12 @@ class AppColors {
   static const Color textDisabled = Color(0xFFBDBDBD);
 
   /// On primary text color
-  static const Color onPrimary = Colors.white;
+  static const Color onPrimary =
+      Color(0xFF2E7D32); // Dark green for contrast with light green
 
   /// On secondary text color
-  static const Color onSecondary = Colors.black;
+  static const Color onSecondary =
+      Color(0xFF5D4037); // Dark brown for contrast with off-white
 
   /// On background text color
   static const Color onBackground = Color(0xFF212121);

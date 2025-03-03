@@ -24,29 +24,28 @@ class AppTheme {
         tertiary: AppColors.tertiary,
         tertiaryContainer: AppColors.tertiaryVariant,
         surface: AppColors.surface,
-        background: AppColors.background,
         error: AppColors.error,
         onPrimary: AppColors.onPrimary,
         onSecondary: AppColors.onSecondary,
         onSurface: AppColors.onSurface,
-        onBackground: AppColors.onBackground,
         onError: AppColors.onError,
         brightness: Brightness.light,
       ),
-      
+
       // Scaffold background color
       scaffoldBackgroundColor: AppColors.background,
-      
+
       // App bar theme
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.onPrimary,
         elevation: 0,
         centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: SystemUiOverlayStyle
+            .dark, // Changed to dark for light green background
         titleTextStyle: TextStyles.headline6,
       ),
-      
+
       // Bottom navigation bar theme
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
@@ -59,7 +58,7 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
-      
+
       // Tab bar theme
       tabBarTheme: const TabBarTheme(
         labelColor: AppColors.primary,
@@ -68,7 +67,7 @@ class AppTheme {
         unselectedLabelStyle: TextStyles.tab,
         indicatorSize: TabBarIndicatorSize.tab,
       ),
-      
+
       // Card theme
       cardTheme: const CardTheme(
         color: AppColors.card,
@@ -78,7 +77,7 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
-      
+
       // Dialog theme
       dialogTheme: const DialogTheme(
         backgroundColor: AppColors.dialog,
@@ -89,7 +88,7 @@ class AppTheme {
         titleTextStyle: TextStyles.dialogTitle,
         contentTextStyle: TextStyles.dialogContent,
       ),
-      
+
       // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -106,7 +105,7 @@ class AppTheme {
           elevation: 0,
         ),
       ),
-      
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
@@ -124,7 +123,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
@@ -138,7 +137,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -179,7 +178,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Checkbox theme
       checkboxTheme: CheckboxThemeData(
         fillColor: MaterialStateProperty.resolveWith<Color>((states) {
@@ -200,7 +199,7 @@ class AppTheme {
           width: 1.5,
         ),
       ),
-      
+
       // Radio theme
       radioTheme: RadioThemeData(
         fillColor: MaterialStateProperty.resolveWith<Color>((states) {
@@ -213,7 +212,7 @@ class AppTheme {
           return AppColors.inputBorder;
         }),
       ),
-      
+
       // Switch theme
       switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
@@ -235,7 +234,7 @@ class AppTheme {
           return AppColors.inputBorder;
         }),
       ),
-      
+
       // Slider theme
       sliderTheme: const SliderThemeData(
         activeTrackColor: AppColors.primary,
@@ -245,14 +244,14 @@ class AppTheme {
         valueIndicatorColor: AppColors.primary,
         valueIndicatorTextStyle: TextStyles.caption,
       ),
-      
+
       // Progress indicator theme
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,
         circularTrackColor: AppColors.inputBackground,
         linearTrackColor: AppColors.inputBackground,
       ),
-      
+
       // Tooltip theme
       tooltipTheme: const TooltipThemeData(
         decoration: BoxDecoration(
@@ -265,14 +264,14 @@ class AppTheme {
           vertical: 8,
         ),
       ),
-      
+
       // Divider theme
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,
         thickness: 1,
         space: 1,
       ),
-      
+
       // Chip theme
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.inputBackground,
@@ -295,7 +294,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Snackbar theme
       snackBarTheme: const SnackBarThemeData(
         backgroundColor: AppColors.textPrimary,
@@ -307,7 +306,7 @@ class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
       ),
-      
+
       // Bottom sheet theme
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.surface,
@@ -318,7 +317,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // List tile theme
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(
@@ -331,7 +330,7 @@ class AppTheme {
         iconColor: AppColors.iconPrimary,
         textColor: AppColors.textPrimary,
       ),
-      
+
       // Popup menu theme
       popupMenuTheme: PopupMenuThemeData(
         color: AppColors.surface,
@@ -341,21 +340,21 @@ class AppTheme {
         ),
         textStyle: TextStyles.body2,
       ),
-      
+
       // Drawer theme
       drawerTheme: const DrawerThemeData(
         backgroundColor: AppColors.surface,
         elevation: 16,
         scrimColor: AppColors.scrim,
       ),
-      
+
       // Bottom app bar theme
       bottomAppBarTheme: const BottomAppBarTheme(
         color: AppColors.surface,
         elevation: 8,
         shape: CircularNotchedRectangle(),
       ),
-      
+
       // Floating action button theme
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
@@ -364,7 +363,7 @@ class AppTheme {
         highlightElevation: 12,
         shape: CircleBorder(),
       ),
-      
+
       // Typography
       textTheme: const TextTheme(
         displayLarge: TextStyles.headline1,
@@ -381,13 +380,13 @@ class AppTheme {
         bodySmall: TextStyles.caption,
         labelSmall: TextStyles.overline,
       ),
-      
+
       // Icon theme
       iconTheme: const IconThemeData(
         color: AppColors.iconPrimary,
         size: 24,
       ),
-      
+
       // Primary icon theme
       primaryIconTheme: const IconThemeData(
         color: AppColors.onPrimary,
@@ -411,19 +410,17 @@ class AppTheme {
         tertiary: AppColors.tertiaryLight,
         tertiaryContainer: AppColors.tertiaryVariant,
         surface: Colors.grey[900]!,
-        background: Colors.grey[850]!,
         error: AppColors.error,
         onPrimary: Colors.black,
         onSecondary: Colors.black,
         onSurface: Colors.white,
-        onBackground: Colors.white,
         onError: Colors.white,
         brightness: Brightness.dark,
       ),
-      
+
       // Scaffold background color
       scaffoldBackgroundColor: Colors.grey[850],
-      
+
       // App bar theme
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.grey[900],
@@ -433,7 +430,7 @@ class AppTheme {
         systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: TextStyles.headline6.copyWith(color: Colors.white),
       ),
-      
+
       // Bottom navigation bar theme
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: Colors.grey[900],
@@ -446,7 +443,7 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 8,
       ),
-      
+
       // Tab bar theme
       tabBarTheme: TabBarTheme(
         labelColor: AppColors.primaryLight,
@@ -455,7 +452,7 @@ class AppTheme {
         unselectedLabelStyle: TextStyles.tab,
         indicatorSize: TabBarIndicatorSize.tab,
       ),
-      
+
       // Card theme
       cardTheme: CardTheme(
         color: Colors.grey[900],
@@ -465,7 +462,7 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
-      
+
       // Dialog theme
       dialogTheme: DialogTheme(
         backgroundColor: Colors.grey[900],
@@ -474,9 +471,10 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         titleTextStyle: TextStyles.dialogTitle.copyWith(color: Colors.white),
-        contentTextStyle: TextStyles.dialogContent.copyWith(color: Colors.white),
+        contentTextStyle:
+            TextStyles.dialogContent.copyWith(color: Colors.white),
       ),
-      
+
       // Button themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -493,7 +491,7 @@ class AppTheme {
           elevation: 0,
         ),
       ),
-      
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primaryLight,
@@ -505,13 +503,13 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          side: BorderSide(
+          side: const BorderSide(
             color: AppColors.primaryLight,
             width: 1,
           ),
         ),
       ),
-      
+
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primaryLight,
@@ -525,7 +523,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -547,7 +545,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
+          borderSide: const BorderSide(
             color: AppColors.primaryLight,
             width: 2,
           ),
@@ -566,7 +564,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Typography
       textTheme: TextTheme(
         displayLarge: TextStyles.headline1.copyWith(color: Colors.white),
