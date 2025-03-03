@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
-import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/text_styles.dart';
 import '../widgets/common/loading_indicator.dart';
@@ -15,7 +14,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -48,11 +48,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Start animation
     _animationController.forward();
 
-    // Initialize auth provider
+    // Initialize auth provider and navigate after a delay
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       // The initialize method is called automatically in the constructor
       // No need to call it explicitly
+
+      // Add a delay and then navigate to login screen
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          // Use GoRouter instead of Navigator
+          context.go('/login');
+        }
+      });
     });
   }
 
@@ -96,6 +103,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   'assets/images/logo.png',
                   width: 150,
                   height: 150,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback to a colored container if the logo is not available
+                    return Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'B',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 80,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 32),

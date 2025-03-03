@@ -41,8 +41,8 @@ class AuthProvider extends ChangeNotifier {
       if (event.event == AuthChangeEvent.signedIn) {
         _currentUser = ServiceRegistry.authService.getCurrentUser();
         _errorMessage = null;
-      } else if (event.event == AuthChangeEvent.signedOut ||
-          event.event == AuthChangeEvent.userDeleted) {
+      } else if (event.event == AuthChangeEvent.signedOut) {
+        // Handle sign out event
         _currentUser = null;
       }
       notifyListeners();
@@ -68,9 +68,9 @@ class AuthProvider extends ChangeNotifier {
     // Check if user has a profile in the database
     // This is a simplified check - in a real app, you would check more fields
     try {
-      final profile =
-          ServiceRegistry.profileService.getUserProfile(_currentUser!.id);
-      return profile != null;
+      // If getUserProfile succeeds (doesn't throw), the profile exists
+      ServiceRegistry.profileService.getUserProfile(_currentUser!.id);
+      return true;
     } catch (e) {
       return false;
     }
@@ -264,9 +264,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _currentUser = await ServiceRegistry.authService.signInWithOAuth(
-        provider: OAuthProvider.google,
-      );
+      _currentUser = await ServiceRegistry.authService.signInWithGoogle();
 
       // Track login event
       if (_currentUser != null) {
@@ -289,9 +287,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _currentUser = await ServiceRegistry.authService.signInWithOAuth(
-        provider: OAuthProvider.apple,
-      );
+      _currentUser = await ServiceRegistry.authService.signInWithApple();
 
       // Track login event
       if (_currentUser != null) {

@@ -75,6 +75,9 @@ class AppRoutes {
   /// Date suggestion details route
   static const String dateSuggestionDetails = '/date-suggestions/:id';
 
+  /// Date type selection route
+  static const String dateTypeSelection = '/date-type-selection';
+
   /// Chart details route
   static const String chartDetails = '/chart/:id';
 
@@ -107,11 +110,13 @@ class AppRoutes {
   static String getConversationRoute(String id) => '/messages/$id';
 
   /// Get date suggestion details route
-  static String getDateSuggestionDetailsRoute(String id) => '/date-suggestions/$id';
+  static String getDateSuggestionDetailsRoute(String id) =>
+      '/date-suggestions/$id';
 
   /// Get chart details route
   static String getChartDetailsRoute(String id) => '/chart/$id';
 
   /// Get questionnaire results route
-  static String getQuestionnaireResultsRoute(String id) => '/questionnaire-results/$id';
+  static String getQuestionnaireResultsRoute(String id) =>
+      '/questionnaire-results/$id';
 }

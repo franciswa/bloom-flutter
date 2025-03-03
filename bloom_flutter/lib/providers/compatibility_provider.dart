@@ -144,8 +144,6 @@ class CompatibilityProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final userId = _authProvider.currentUser!.id;
-
       // Get profiles that match the criteria
       final profiles = await ServiceRegistry.profileService.searchProfiles(
         gender: gender,

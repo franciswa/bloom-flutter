@@ -1,17 +1,15 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../config/app_config.dart';
 import '../models/chart.dart';
-import '../models/profile.dart';
 import 'supabase_service.dart';
 
 /// Chart service
 class ChartService {
   /// Table name
   static const String _tableName = AppConfig.supabaseChartsTable;
-  
+
   /// Storage bucket name
-  static const String _storageBucket = AppConfig.supabaseStorageChartImagesBucket;
+  static const String _storageBucket =
+      AppConfig.supabaseStorageChartImagesBucket;
 
   /// Get chart by user ID
   Future<Chart?> getChartByUserId(String userId) async {
@@ -85,16 +83,18 @@ class ChartService {
   }) async {
     // Calculate sun sign based on birth date
     final sunSign = _calculateZodiacSign(birthDate);
-    
+
     // Calculate moon sign (simplified - in a real app, this would use ephemeris data)
     final moonSign = _calculateMoonSign(birthDate, birthTime);
-    
+
     // Calculate ascendant sign (simplified - in a real app, this would use location and time)
-    final ascendantSign = _calculateAscendantSign(birthDate, birthTime, birthLatitude, birthLongitude);
-    
+    final ascendantSign = _calculateAscendantSign(
+        birthDate, birthTime, birthLatitude, birthLongitude);
+
     // Calculate planetary positions (simplified)
-    final planetaryPositions = _calculatePlanetaryPositions(birthDate, birthTime, birthLatitude, birthLongitude);
-    
+    final planetaryPositions = _calculatePlanetaryPositions(
+        birthDate, birthTime, birthLatitude, birthLongitude);
+
     // Create chart
     final chart = Chart(
       userId: userId,
@@ -112,19 +112,19 @@ class ChartService {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
-    
+
     // Save chart to database
     return await createChart(chart);
   }
-  
+
   /// Calculate zodiac sign from birth date
   ZodiacSign _calculateZodiacSign(DateTime birthDate) {
     final month = birthDate.month;
     final day = birthDate.day;
-    
+
     // Calculate date value (month * 100 + day) for easy comparison
     final dateValue = month * 100 + day;
-    
+
     if (dateValue >= 321 && dateValue <= 419) {
       return ZodiacSign.aries;
     } else if (dateValue >= 420 && dateValue <= 520) {
@@ -143,7 +143,8 @@ class ChartService {
       return ZodiacSign.scorpio;
     } else if (dateValue >= 1122 && dateValue <= 1221) {
       return ZodiacSign.sagittarius;
-    } else if ((dateValue >= 1222 && dateValue <= 1231) || (dateValue >= 101 && dateValue <= 119)) {
+    } else if ((dateValue >= 1222 && dateValue <= 1231) ||
+        (dateValue >= 101 && dateValue <= 119)) {
       return ZodiacSign.capricorn;
     } else if (dateValue >= 120 && dateValue <= 218) {
       return ZodiacSign.aquarius;
@@ -151,52 +152,56 @@ class ChartService {
       return ZodiacSign.pisces;
     }
   }
-  
+
   /// Calculate moon sign (simplified)
   ZodiacSign _calculateMoonSign(DateTime birthDate, String birthTime) {
     // In a real app, this would use ephemeris data
     // For now, we'll use a simplified algorithm based on birth date
-    
+
     // Parse birth time
     final timeParts = birthTime.split(':');
     final hour = int.parse(timeParts[0]);
     final minute = int.parse(timeParts[1]);
-    
+
     // Adjust birth date based on time
     final adjustedDate = birthDate.add(Duration(hours: hour, minutes: minute));
-    
+
     // Calculate moon sign (simplified - moon moves roughly one sign every 2.5 days)
-    final dayOfYear = adjustedDate.difference(DateTime(adjustedDate.year, 1, 1)).inDays;
+    final dayOfYear =
+        adjustedDate.difference(DateTime(adjustedDate.year, 1, 1)).inDays;
     final moonSignIndex = (dayOfYear ~/ 2.5) % 12;
-    
+
     return ZodiacSign.values[moonSignIndex];
   }
-  
+
   /// Calculate ascendant sign (simplified)
-  ZodiacSign _calculateAscendantSign(DateTime birthDate, String birthTime, double latitude, double longitude) {
+  ZodiacSign _calculateAscendantSign(
+      DateTime birthDate, String birthTime, double latitude, double longitude) {
     // In a real app, this would use location and time
     // For now, we'll use a simplified algorithm based on birth time
-    
+
     // Parse birth time
     final timeParts = birthTime.split(':');
     final hour = int.parse(timeParts[0]);
     final minute = int.parse(timeParts[1]);
-    
+
     // Calculate ascendant sign (simplified - ascendant changes roughly every 2 hours)
     final ascendantSignIndex = ((hour * 60 + minute) ~/ 120) % 12;
-    
+
     return ZodiacSign.values[ascendantSignIndex];
   }
-  
+
   /// Calculate planetary positions (simplified)
-  List<PlanetaryPosition> _calculatePlanetaryPositions(DateTime birthDate, String birthTime, double latitude, double longitude) {
+  List<PlanetaryPosition> _calculatePlanetaryPositions(
+      DateTime birthDate, String birthTime, double latitude, double longitude) {
     // In a real app, this would use ephemeris data
     // For now, we'll return simplified positions
-    
+
     final sunSign = _calculateZodiacSign(birthDate);
     final moonSign = _calculateMoonSign(birthDate, birthTime);
-    final ascendantSign = _calculateAscendantSign(birthDate, birthTime, latitude, longitude);
-    
+    final ascendantSign =
+        _calculateAscendantSign(birthDate, birthTime, latitude, longitude);
+
     // Calculate other planets (simplified)
     final mercurySign = _calculateAdjacentSign(sunSign, 1);
     final venusSign = _calculateAdjacentSign(sunSign, 2);
@@ -206,7 +211,7 @@ class ChartService {
     final uranusSign = _calculateAdjacentSign(jupiterSign, 1);
     final neptuneSign = _calculateAdjacentSign(saturnSign, 2);
     final plutoSign = _calculateAdjacentSign(neptuneSign, 1);
-    
+
     return [
       PlanetaryPosition(
         planet: Planet.sun,
@@ -280,21 +285,22 @@ class ChartService {
       ),
     ];
   }
-  
+
   /// Calculate adjacent sign
   ZodiacSign _calculateAdjacentSign(ZodiacSign sign, int offset) {
     final signIndex = ZodiacSign.values.indexOf(sign);
     final newIndex = (signIndex + offset) % 12;
     return ZodiacSign.values[newIndex];
   }
-  
+
   /// Check if planet is retrograde (simplified)
   bool _isRetrograde(DateTime birthDate, Planet planet) {
     // In a real app, this would use ephemeris data
     // For now, we'll use a simplified algorithm based on birth date
-    
-    final dayOfYear = birthDate.difference(DateTime(birthDate.year, 1, 1)).inDays;
-    
+
+    final dayOfYear =
+        birthDate.difference(DateTime(birthDate.year, 1, 1)).inDays;
+
     switch (planet) {
       case Planet.mercury:
         // Mercury is retrograde roughly 3 times a year for about 3 weeks
@@ -324,7 +330,7 @@ class ChartService {
         return false;
     }
   }
-  
+
   /// Get element for sign
   Element getElementForSign(ZodiacSign sign) {
     switch (sign) {
@@ -346,7 +352,7 @@ class ChartService {
         return Element.water;
     }
   }
-  
+
   /// Get modality for sign
   Modality getModalityForSign(ZodiacSign sign) {
     switch (sign) {
@@ -367,7 +373,7 @@ class ChartService {
         return Modality.mutable;
     }
   }
-  
+
   /// Get ruling planet for sign
   Planet getRulingPlanetForSign(ZodiacSign sign) {
     switch (sign) {

@@ -13,6 +13,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/helpers/ui_helpers.dart';
 import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/common/liquid_nav_bar_scaffold.dart';
 import 'widgets/conversation_tile.dart';
 
 /// Messages screen
@@ -112,7 +113,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return context.createMessagesScaffold(
       appBar: AppBar(
         title: const Text('Messages'),
         actions: [
@@ -208,7 +209,7 @@ class _EmptyConversationsView extends StatelessWidget {
           ),
           SizedBox(height: 16),
           Text(
-            'No conversations yet',
+            'No messages yet',
             style: TextStyles.headline6,
           ),
           SizedBox(height: 8),

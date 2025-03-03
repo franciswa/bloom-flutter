@@ -1,20 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart' as path;
 
-import '../../models/message.dart';
 import '../../models/profile.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/message_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/text_styles.dart';
-import '../../utils/error_handling.dart';
-import '../../utils/helpers/date_helpers.dart';
 import '../../utils/helpers/ui_helpers.dart';
 import '../../widgets/common/loading_indicator.dart';
 import 'widgets/message_bubble.dart';

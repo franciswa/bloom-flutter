@@ -1,5 +1,3 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../config/app_config.dart';
 import '../models/astrology.dart';
 import '../models/date_preference.dart';

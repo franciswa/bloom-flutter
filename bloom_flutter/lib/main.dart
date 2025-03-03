@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -16,7 +17,7 @@ import 'utils/error_handling.dart';
 // Global error handler for uncaught errors
 void _handleUncaughtError(Object error, StackTrace stackTrace) {
   debugPrint('Uncaught error: $error');
-  // Try to report to Sentry, but don't wait for it
+  // Report to Sentry
   try {
     Sentry.captureException(error, stackTrace: stackTrace);
   } catch (_) {
@@ -87,7 +88,8 @@ Future<void> main() async {
     bool isConnected = false;
     try {
       final connectivityResult = await Connectivity().checkConnectivity();
-      isConnected = connectivityResult != ConnectivityResult.none;
+      isConnected =
+          connectivityResult.contains(ConnectivityResult.none) == false;
     } catch (e) {
       debugPrint('Failed to check connectivity: $e');
       // Assume connected and try anyway
@@ -97,15 +99,21 @@ Future<void> main() async {
     // Initialize Supabase
     if (isConnected) {
       try {
-        await Supabase.initialize(
-          url: AppConfig.supabaseUrl,
-          anonKey: AppConfig.supabaseAnonKey,
-          // Use default auth flow
-          realtimeClientOptions: const RealtimeClientOptions(
-            eventsPerSecond: 10,
-          ),
-        );
-        debugPrint('Supabase initialized successfully');
+        // Skip Supabase initialization in web for now
+        if (!kIsWeb) {
+          await Supabase.initialize(
+            url: AppConfig.supabaseUrl,
+            anonKey: AppConfig.supabaseAnonKey,
+            // Use default auth flow
+            realtimeClientOptions: const RealtimeClientOptions(
+              eventsPerSecond: 10,
+            ),
+          );
+          debugPrint('Supabase initialized successfully');
+        } else {
+          debugPrint(
+              'Web environment detected, skipping Supabase initialization');
+        }
       } catch (e, stackTrace) {
         debugPrint('Failed to initialize Supabase: $e');
         ErrorHandler.logError(e, stackTrace: stackTrace);
@@ -117,27 +125,40 @@ Future<void> main() async {
 
     // Initialize PostHog analytics (non-blocking)
     try {
-      await AnalyticsService.initialize();
-      // Track app start event
-      unawaited(AnalyticsService.trackAppStart());
+      // Skip analytics initialization in web for now
+      if (!kIsWeb) {
+        await AnalyticsService.initialize();
+        // Track app start event
+        unawaited(AnalyticsService.trackAppStart());
+      } else {
+        debugPrint(
+            'Web environment detected, skipping analytics initialization');
+      }
     } catch (e, stackTrace) {
       debugPrint('Failed to initialize analytics: $e');
       ErrorHandler.logError(e, stackTrace: stackTrace);
       // Continue anyway, analytics is not critical
     }
 
-    // Initialize Sentry (non-blocking)
+    // Initialize Sentry
     try {
-      await SentryFlutter.init(
-        (options) {
-          options.dsn = AppConfig.sentryDsn;
-          options.tracesSampleRate = 1.0; // Capture 100% of transactions
-          options.enableAutoSessionTracking = true;
-          options.attachStacktrace = true;
-          options.enableNativeCrashHandling = true;
-        },
-        appRunner: () => runApp(const MyApp()),
-      );
+      // Skip Sentry initialization in web for now
+      if (!kIsWeb) {
+        await SentryFlutter.init(
+          (options) {
+            options.dsn = AppConfig.sentryDsn;
+            options.tracesSampleRate = 1.0; // Capture 100% of transactions
+            options.enableAutoSessionTracking = true;
+            options.attachStacktrace = true;
+            options.enableNativeCrashHandling = true;
+          },
+          appRunner: () => runApp(const MyApp()),
+        );
+      } else {
+        debugPrint('Web environment detected, skipping Sentry initialization');
+        // Just run the app directly in web
+        runApp(const MyApp());
+      }
     } catch (e, stackTrace) {
       debugPrint('Failed to initialize Sentry: $e');
       ErrorHandler.logError(e, stackTrace: stackTrace);

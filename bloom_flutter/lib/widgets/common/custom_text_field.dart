@@ -11,7 +11,7 @@ class CustomTextField extends StatelessWidget {
 
   /// Label
   final String? label;
-  
+
   /// Label text (alternative to label)
   final String? labelText;
 
@@ -146,7 +146,7 @@ class CustomTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -182,7 +182,7 @@ class CustomTextField extends StatelessWidget {
             hintText: hintText,
             errorText: errorText,
             helperText: helperText,
-            prefixIcon: prefixIcon != null 
+            prefixIcon: prefixIcon != null
                 ? (prefixIcon is IconData ? Icon(prefixIcon) : prefixIcon)
                 : null,
             suffixIcon: suffixIcon,
@@ -190,32 +190,37 @@ class CustomTextField extends StatelessWidget {
             filled: true,
             fillColor: fillColor ?? AppColors.inputBackground,
             border: OutlineInputBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(12),
+              borderRadius:
+                  borderRadius ?? const BorderRadius.all(Radius.circular(12)),
               borderSide: BorderSide(
                 color: borderColor ?? AppColors.inputBorder,
               ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(12),
+              borderRadius:
+                  borderRadius ?? const BorderRadius.all(Radius.circular(12)),
               borderSide: BorderSide(
                 color: borderColor ?? AppColors.inputBorder,
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(12),
+              borderRadius:
+                  borderRadius ?? const BorderRadius.all(Radius.circular(12)),
               borderSide: BorderSide(
                 color: focusBorderColor ?? theme.primaryColor,
                 width: 2,
               ),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(12),
+              borderRadius:
+                  borderRadius ?? const BorderRadius.all(Radius.circular(12)),
               borderSide: BorderSide(
                 color: errorBorderColor ?? AppColors.error,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(12),
+              borderRadius:
+                  borderRadius ?? const BorderRadius.all(Radius.circular(12)),
               borderSide: BorderSide(
                 color: errorBorderColor ?? AppColors.error,
                 width: 2,

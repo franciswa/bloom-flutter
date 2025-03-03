@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import '../models/astrology.dart';
 import '../models/date_preference.dart';
-import '../models/profile.dart';
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../services/service_registry.dart';
@@ -90,13 +89,6 @@ class DatePreferenceProvider extends ChangeNotifier {
       return;
     }
 
-    final userId = _authProvider.currentUser!.id;
-    final profile = _profileProvider.currentProfile!;
-
-    // Get zodiac sign and element from profile
-    final userSign = profile.zodiacSign;
-    final userElement = _getElementFromZodiacSign(userSign);
-
     // For now, we'll just get suggestions by type
     // In a real app, we would use the compatibility service to get compatible matches
     // and then get their zodiac signs and elements
@@ -104,28 +96,6 @@ class DatePreferenceProvider extends ChangeNotifier {
         await ServiceRegistry.datePreferenceService.getDateSuggestionsByType(
       DateType.dining,
     );
-  }
-
-  /// Get element from zodiac sign
-  Element _getElementFromZodiacSign(ZodiacSign sign) {
-    switch (sign) {
-      case ZodiacSign.aries:
-      case ZodiacSign.leo:
-      case ZodiacSign.sagittarius:
-        return Element.fire;
-      case ZodiacSign.taurus:
-      case ZodiacSign.virgo:
-      case ZodiacSign.capricorn:
-        return Element.earth;
-      case ZodiacSign.gemini:
-      case ZodiacSign.libra:
-      case ZodiacSign.aquarius:
-        return Element.air;
-      case ZodiacSign.cancer:
-      case ZodiacSign.scorpio:
-      case ZodiacSign.pisces:
-        return Element.water;
-    }
   }
 
   /// Update auth provider

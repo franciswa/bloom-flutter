@@ -3,13 +3,18 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../config/routes.dart';
+import '../models/astrology.dart';
 import '../providers/auth_provider.dart';
+import '../providers/questionnaire_provider.dart';
 import '../services/analytics_service.dart';
 import '../screens/auth/email_verification_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/reset_password_screen.dart';
+import '../screens/date_night/date_night_screen.dart';
+import '../screens/date_night/date_type_selection_screen.dart';
+import '../screens/discovery/discovery_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/messages/conversation_screen.dart';
 import '../screens/messages/messages_screen.dart';
@@ -17,6 +22,8 @@ import '../screens/onboarding/birth_information_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/onboarding/profile_creation_screen.dart';
 import '../screens/onboarding/questionnaire_screen.dart';
+import '../screens/profile/profile_screen.dart';
+import '../screens/settings/settings_screen.dart';
 import '../screens/splash_screen.dart';
 
 /// Analytics route observer
@@ -58,7 +65,7 @@ class AnalyticsRouteObserver extends NavigatorObserver {
       if (route.settings.name != null) {
         final name = route.settings.name!;
 
-        // For routes with parameters in the name (e.g., "MatchDetails/123")
+        // For routes with parameters in the name (e.g., 'MatchDetails/123')
         if (name.contains('/')) {
           final parts = name.split('/');
           if (parts.length > 1) {
@@ -101,6 +108,8 @@ class AppRouter {
   /// Create router
   static GoRouter createRouter(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final questionnaireProvider =
+        Provider.of<QuestionnaireProvider>(context, listen: false);
 
     // Create analytics observer
     final analyticsObserver = AnalyticsRouteObserver();
@@ -110,17 +119,17 @@ class AppRouter {
       debugLogDiagnostics: true,
       refreshListenable: authProvider,
       observers: [analyticsObserver],
-      onException: (_, GoRouterState state, GoRouter router) {
-        // Track navigation errors
-        AnalyticsService.trackError(
-          errorMessage: 'Navigation error: ${state.error}',
-          errorSource: 'Router',
-          stackTrace: StackTrace.current,
-        );
+      // onException: (_, GoRouterState state, GoRouter router) {
+      //   // Track navigation errors
+      //   AnalyticsService.trackError(
+      //     errorMessage: 'Navigation error: ${state.error}',
+      //     errorSource: 'Router',
+      //     stackTrace: StackTrace.current,
+      //   );
 
-        // Redirect to splash screen on error
-        return router.go(AppRoutes.splash);
-      },
+      //   // Redirect to splash screen on error
+      //   return router.go(AppRoutes.splash);
+      // },
       redirect: (context, state) {
         // Simplified redirect logic
         final isInitialized = authProvider.currentUser != null;
@@ -130,10 +139,25 @@ class AppRouter {
             state.uri.path == AppRoutes.forgotPassword ||
             state.uri.path == AppRoutes.resetPassword ||
             state.uri.path == AppRoutes.emailVerification;
+        final isOnboardingRoute = state.uri.path == AppRoutes.onboarding ||
+            state.uri.path == AppRoutes.profileCreation ||
+            state.uri.path == AppRoutes.birthInformation ||
+            state.uri.path == AppRoutes.questionnaire;
 
         // If not initialized, stay on splash screen
         if (!isInitialized && !isSplash && !isAuthRoute) {
           return AppRoutes.splash;
+        }
+
+        // If user is authenticated but hasn't completed the questionnaire,
+        // redirect to questionnaire screen unless already on an onboarding route
+        if (isInitialized && !isOnboardingRoute) {
+          // Check if user has completed the questionnaire
+          final completionPercentage =
+              questionnaireProvider.getCompletionPercentage();
+          if (completionPercentage < 1.0) {
+            return AppRoutes.questionnaire;
+          }
         }
 
         return null;
@@ -191,11 +215,39 @@ class AppRouter {
           },
         ),
 
-        // Home route
+        // Main app routes
         GoRoute(
           path: AppRoutes.home,
           name: 'Home',
           builder: (context, state) => const HomeScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.discovery,
+          name: 'Discovery',
+          builder: (context, state) => const DiscoveryScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.profile,
+          name: 'Profile',
+          builder: (context, state) => const ProfileScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.dateSuggestions,
+          name: 'DateSuggestions',
+          builder: (context, state) => const DateNightScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.dateTypeSelection,
+          name: 'DateTypeSelection',
+          builder: (context, state) {
+            final selectedSign = state.extra as ZodiacSign;
+            return DateTypeSelectionScreen(selectedSign: selectedSign);
+          },
+        ),
+        GoRoute(
+          path: AppRoutes.settings,
+          name: 'Settings',
+          builder: (context, state) => const SettingsScreen(),
         ),
 
         // Onboarding routes

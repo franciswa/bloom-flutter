@@ -5,7 +5,6 @@ import '../models/message.dart';
 import '../providers/auth_provider.dart';
 import '../providers/match_provider.dart';
 import '../services/analytics_service.dart';
-import '../services/message_service.dart';
 import '../services/service_registry.dart';
 
 /// Message provider

@@ -58,7 +58,7 @@ class CustomButton extends StatelessWidget {
 
   /// Padding
   final EdgeInsetsGeometry? padding;
-  
+
   /// Is loading
   final bool isLoading;
 
@@ -83,14 +83,14 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Default styles based on button type
     late final Color defaultBackgroundColor;
     late final Color defaultForegroundColor;
     late final Color defaultBorderColor;
     late final EdgeInsetsGeometry defaultPadding;
     late final Widget buttonChild;
-    
+
     switch (type) {
       case ButtonType.primary:
         defaultBackgroundColor = theme.primaryColor;
@@ -173,7 +173,7 @@ class CustomButton extends StatelessWidget {
         );
         break;
     }
-    
+
     return SizedBox(
       width: width,
       height: height,
@@ -196,7 +196,8 @@ class CustomButton extends StatelessWidget {
         foregroundColor: foregroundColor ?? defaultForegroundColor,
         padding: padding ?? defaultPadding,
         shape: RoundedRectangleBorder(
-          borderRadius: borderRadius ?? BorderRadius.circular(12),
+          borderRadius:
+              borderRadius ?? const BorderRadius.all(Radius.circular(12)),
           side: BorderSide(
             color: borderColor ?? defaultBorderColor,
           ),
@@ -222,7 +223,8 @@ class CustomButton extends StatelessWidget {
         foregroundColor: foregroundColor ?? defaultForegroundColor,
         padding: padding ?? defaultPadding,
         shape: RoundedRectangleBorder(
-          borderRadius: borderRadius ?? BorderRadius.circular(12),
+          borderRadius:
+              borderRadius ?? const BorderRadius.all(Radius.circular(12)),
           side: BorderSide(
             color: borderColor ?? defaultBorderColor,
           ),
@@ -247,7 +249,8 @@ class CustomButton extends StatelessWidget {
         foregroundColor: foregroundColor ?? defaultForegroundColor,
         padding: padding ?? defaultPadding,
         shape: RoundedRectangleBorder(
-          borderRadius: borderRadius ?? BorderRadius.circular(12),
+          borderRadius:
+              borderRadius ?? const BorderRadius.all(Radius.circular(12)),
           side: BorderSide(
             color: borderColor ?? defaultBorderColor,
           ),

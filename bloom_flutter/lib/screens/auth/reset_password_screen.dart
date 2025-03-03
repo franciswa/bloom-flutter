@@ -42,8 +42,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
     try {
       // In a real app, you would get the reset token from the URL
       // For this example, we'll just simulate a successful password reset
@@ -67,8 +65,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final isLoading = authProvider.isLoading;
+    final isLoading = Provider.of<AuthProvider>(context).isLoading;
 
     return Scaffold(
       appBar: AppBar(

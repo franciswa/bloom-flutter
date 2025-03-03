@@ -1,6 +1,8 @@
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+// Conditionally import dart:io
+import 'dart:io' as io;
 
 /// App environment enum
 enum AppEnvironment {
@@ -22,12 +24,21 @@ class AppConfig {
   /// Initialize app configuration
   static Future<void> initialize(AppEnvironment env) async {
     environment = env;
-    
+
     // Load environment variables
     await dotenv.load(
       fileName: _getEnvFileName(env),
-      mergeWith: Platform.environment,
+      // Only use Platform.environment on non-web platforms
+      mergeWith: kIsWeb ? {} : io.Platform.environment,
     );
+
+    // Log environment initialization in debug mode
+    if (kDebugMode) {
+      print('Initialized app with environment: ${env.toString()}');
+      print('Supabase URL: ${supabaseUrl}');
+      print('Debug mode: ${isDebugMode}');
+      print('Feature flags: ${getFeatureFlags()}');
+    }
   }
 
   /// Get environment file name
@@ -41,6 +52,49 @@ class AppConfig {
         return '.env.production';
     }
   }
+
+  /// Get a string representation of the current environment
+  static String getEnvironmentName() {
+    switch (environment) {
+      case AppEnvironment.development:
+        return 'Development';
+      case AppEnvironment.staging:
+        return 'Staging';
+      case AppEnvironment.production:
+        return 'Production';
+    }
+  }
+
+  /// Get a map of all feature flags
+  static Map<String, bool> getFeatureFlags() {
+    return {
+      'debugMode': isDebugModeEnabled,
+      'verboseLogging': isVerboseLoggingEnabled,
+      'mockLocation': isMockLocationEnabled,
+      'performanceOverlay': isPerformanceOverlayEnabled,
+      'environmentIndicator': isEnvironmentIndicatorEnabled,
+    };
+  }
+
+  /// Is debug mode enabled (from environment)
+  static bool get isDebugModeEnabled =>
+      dotenv.env['DEBUG_MODE']?.toLowerCase() == 'true';
+
+  /// Is verbose logging enabled (from environment)
+  static bool get isVerboseLoggingEnabled =>
+      dotenv.env['VERBOSE_LOGGING']?.toLowerCase() == 'true';
+
+  /// Is mock location enabled (from environment)
+  static bool get isMockLocationEnabled =>
+      dotenv.env['MOCK_LOCATION']?.toLowerCase() == 'true';
+
+  /// Is performance overlay enabled (from environment)
+  static bool get isPerformanceOverlayEnabled =>
+      dotenv.env['ENABLE_PERFORMANCE_OVERLAY']?.toLowerCase() == 'true';
+
+  /// Is environment indicator enabled (from environment)
+  static bool get isEnvironmentIndicatorEnabled =>
+      dotenv.env['SHOW_ENVIRONMENT_INDICATOR']?.toLowerCase() == 'true';
 
   /// Private constructor to prevent instantiation
   const AppConfig._();
@@ -70,7 +124,8 @@ class AppConfig {
   static const String appStoreUrl = 'https://apps.apple.com/app/id$appStoreId';
 
   /// Play store URL
-  static const String playStoreUrl = 'https://play.google.com/store/apps/details?id=$appPackageName';
+  static const String playStoreUrl =
+      'https://play.google.com/store/apps/details?id=$appPackageName';
 
   /// App website URL
   static const String appWebsiteUrl = 'https://example.com';
@@ -109,16 +164,18 @@ class AppConfig {
   static String get supabaseAnonKey => dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
   /// Supabase service role key
-  static String get supabaseServiceRoleKey => dotenv.env['SUPABASE_SERVICE_ROLE_KEY'] ?? '';
-  
+  static String get supabaseServiceRoleKey =>
+      dotenv.env['SUPABASE_SERVICE_ROLE_KEY'] ?? '';
+
   /// Sentry DSN
   static String get sentryDsn => dotenv.env['SENTRY_DSN'] ?? '';
-  
+
   /// PostHog API key
   static String get posthogApiKey => dotenv.env['POSTHOG_API_KEY'] ?? '';
-  
+
   /// PostHog host
-  static String get posthogHost => dotenv.env['POSTHOG_HOST'] ?? 'https://app.posthog.com';
+  static String get posthogHost =>
+      dotenv.env['POSTHOG_HOST'] ?? 'https://app.posthog.com';
 
   /// Supabase storage URL
   static String get supabaseStorageUrl => '$supabaseUrl/storage/v1';
@@ -151,7 +208,8 @@ class AppConfig {
   static const String supabaseStorageChartImagesBucket = 'chart_images';
 
   /// Supabase storage date suggestion photos bucket
-  static const String supabaseStorageDateSuggestionPhotosBucket = 'date_suggestion_photos';
+  static const String supabaseStorageDateSuggestionPhotosBucket =
+      'date_suggestion_photos';
 
   /// Supabase profiles table
   static const String supabaseProfilesTable = 'profiles';
@@ -169,7 +227,8 @@ class AppConfig {
   static const String supabaseNotificationsTable = 'notifications';
 
   /// Supabase notification settings table
-  static const String supabaseNotificationSettingsTable = 'notification_settings';
+  static const String supabaseNotificationSettingsTable =
+      'notification_settings';
 
   /// Supabase user settings table
   static const String supabaseUserSettingsTable = 'user_settings';
@@ -187,13 +246,16 @@ class AppConfig {
   static const String supabaseCompatibilityTable = 'compatibility';
 
   /// Supabase questionnaire questions table
-  static const String supabaseQuestionnaireQuestionsTable = 'questionnaire_questions';
+  static const String supabaseQuestionnaireQuestionsTable =
+      'questionnaire_questions';
 
   /// Supabase questionnaire answers table
-  static const String supabaseQuestionnaireAnswersTable = 'questionnaire_answers';
+  static const String supabaseQuestionnaireAnswersTable =
+      'questionnaire_answers';
 
   /// Supabase questionnaire results table
-  static const String supabaseQuestionnaireResultsTable = 'questionnaire_results';
+  static const String supabaseQuestionnaireResultsTable =
+      'questionnaire_results';
 
   /// Supabase blocked users table
   static const String supabaseBlockedUsersTable = 'blocked_users';
@@ -259,7 +321,8 @@ class AppConfig {
   static const String supabaseUserNotificationsTable = 'user_notifications';
 
   /// Supabase user date suggestions table
-  static const String supabaseUserDateSuggestionsTable = 'user_date_suggestions';
+  static const String supabaseUserDateSuggestionsTable =
+      'user_date_suggestions';
 
   /// Supabase user charts table
   static const String supabaseUserChartsTable = 'user_charts';
@@ -275,67 +338,4 @@ class AppConfig {
 
   /// Supabase user profiles table
   static const String supabaseUserProfilesTable = 'user_profiles';
-
-  /// Supabase user roles table
-  static const String supabaseUserRolesTable2 = 'user_roles';
-
-  /// Supabase user permissions table
-  static const String supabaseUserPermissionsTable2 = 'user_permissions';
-
-  /// Supabase user activity table
-  static const String supabaseUserActivityTable2 = 'user_activity';
-
-  /// Supabase user devices table
-  static const String supabaseUserDevicesTable2 = 'user_devices';
-
-  /// Supabase user sessions table
-  static const String supabaseUserSessionsTable2 = 'user_sessions';
-
-  /// Supabase user locations table
-  static const String supabaseUserLocationsTable2 = 'user_locations';
-
-  /// Supabase user analytics table
-  static const String supabaseUserAnalyticsTable2 = 'user_analytics';
-
-  /// Supabase user feedback table
-  static const String supabaseUserFeedbackTable2 = 'user_feedback';
-
-  /// Supabase user reports table
-  static const String supabaseUserReportsTable2 = 'user_reports';
-
-  /// Supabase user blocks table
-  static const String supabaseUserBlocksTable2 = 'user_blocks';
-
-  /// Supabase user likes table
-  static const String supabaseUserLikesTable2 = 'user_likes';
-
-  /// Supabase user views table
-  static const String supabaseUserViewsTable2 = 'user_views';
-
-  /// Supabase user matches table
-  static const String supabaseUserMatchesTable2 = 'user_matches';
-
-  /// Supabase user messages table
-  static const String supabaseUserMessagesTable2 = 'user_messages';
-
-  /// Supabase user notifications table
-  static const String supabaseUserNotificationsTable2 = 'user_notifications';
-
-  /// Supabase user date suggestions table
-  static const String supabaseUserDateSuggestionsTable2 = 'user_date_suggestions';
-
-  /// Supabase user charts table
-  static const String supabaseUserChartsTable2 = 'user_charts';
-
-  /// Supabase user compatibility table
-  static const String supabaseUserCompatibilityTable2 = 'user_compatibility';
-
-  /// Supabase user settings table
-  static const String supabaseUserSettingsTable3 = 'user_settings';
-
-  /// Supabase user preferences table
-  static const String supabaseUserPreferencesTable2 = 'user_preferences';
-
-  /// Supabase user profiles table
-  static const String supabaseUserProfilesTable2 = 'user_profiles';
 }

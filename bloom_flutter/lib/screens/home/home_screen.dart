@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
+import '../../widgets/common/persistent_bottom_nav_bar.dart';
 
 /// Home screen
 class HomeScreen extends StatelessWidget {
@@ -14,7 +17,8 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
 
-    return Scaffold(
+    return NavBarScaffold(
+      currentIndex: 0,
       appBar: AppBar(
         title: const Text('Bloom'),
         actions: [
@@ -48,36 +52,12 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 48),
             ElevatedButton(
               onPressed: () {
-                // Navigate to discovery screen
+                context.go(AppRoutes.discovery);
               },
               child: const Text('Start Exploring'),
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Discover',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            label: 'Messages',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        onTap: (index) {
-          // Handle navigation
-        },
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
+// import 'package:sentry_flutter/sentry_flutter.dart'; // Temporarily disabled for Linux build
 
 /// Error handler for the app
 class ErrorHandler {
@@ -20,36 +20,40 @@ class ErrorHandler {
       debugPrint('STACK TRACE: $stackTrace');
     }
 
-    // Try to log to Sentry, but don't wait for it
-    try {
-      unawaited(_logToSentry(error,
-          stackTrace: stackTrace, hint: hint, extras: extras));
-    } catch (e) {
-      // Ignore errors in error reporting
-      debugPrint('Failed to log error to Sentry: $e');
-    }
+    // Sentry logging is disabled for Linux build
+    // When re-enabling Sentry, uncomment the following:
+    // try {
+    //   unawaited(Sentry.captureException(
+    //     error,
+    //     stackTrace: stackTrace,
+    //     hint: hint != null ? Hint.withMap({'hint': hint}) : null,
+    //   ));
+    // } catch (e) {
+    //   // Ignore errors in error reporting
+    //   debugPrint('Failed to log error to Sentry: $e');
+    // }
   }
 
-  /// Log error to Sentry
-  static Future<void> _logToSentry(
-    dynamic error, {
-    StackTrace? stackTrace,
-    String? hint,
-    Map<String, dynamic>? extras,
-  }) async {
-    try {
-      final sentryId = await Sentry.captureException(
-        error,
-        stackTrace: stackTrace,
-        hint: hint != null ? Hint.withMap({'hint': hint}) : null,
-        // extras parameter is not available in the current version of Sentry
-      );
-      debugPrint('Error logged to Sentry with ID: $sentryId');
-    } catch (e) {
-      // Ignore errors in error reporting
-      debugPrint('Failed to log error to Sentry: $e');
-    }
-  }
+  // Sentry logging method - commented out until Sentry is re-enabled
+  // static Future<void> _logToSentry(
+  //   dynamic error, {
+  //   StackTrace? stackTrace,
+  //   String? hint,
+  //   Map<String, dynamic>? extras,
+  // }) async {
+  //   try {
+  //     final sentryId = await Sentry.captureException(
+  //       error,
+  //       stackTrace: stackTrace,
+  //       hint: hint != null ? Hint.withMap({'hint': hint}) : null,
+  //       // extras parameter is not available in the current version of Sentry
+  //     );
+  //     debugPrint('Error logged to Sentry with ID: $sentryId');
+  //   } catch (e) {
+  //     // Ignore errors in error reporting
+  //     debugPrint('Failed to log error to Sentry: $e');
+  //   }
+  // }
 
   /// Handle error with custom handler
   static Future<void> handleError(

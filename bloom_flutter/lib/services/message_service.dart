@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/app_config.dart';
 import '../models/message.dart';
+import 'auth_service.dart';
 import 'supabase_service.dart';
 
 /// Message service
@@ -48,8 +49,206 @@ class MessageService {
     return Conversation.fromJson(response);
   }
 
+  /// Demo conversations for testing
+  final List<Conversation> _demoConversations = [
+    Conversation(
+      id: 'demo-conv-1',
+      firstUserId: 'demo-user-123',
+      secondUserId: 'demo-user-124',
+      lastMessage: Message(
+        id: 'demo-msg-5',
+        conversationId: 'demo-conv-1',
+        senderId: 'demo-user-124',
+        receiverId: 'demo-user-123',
+        text: 'Looking forward to getting to know you better!',
+        type: MessageType.text,
+        status: MessageStatus.delivered,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
+      ),
+      lastMessageText: 'Looking forward to getting to know you better!',
+      lastMessageTimestamp: DateTime.now().subtract(const Duration(hours: 2)),
+      firstUserUnreadCount: 1,
+      secondUserUnreadCount: 0,
+      firstUserMuted: false,
+      secondUserMuted: false,
+      firstUserArchived: false,
+      secondUserArchived: false,
+      firstUserDeleted: false,
+      secondUserDeleted: false,
+      createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
+    ),
+    Conversation(
+      id: 'demo-conv-2',
+      firstUserId: 'demo-user-123',
+      secondUserId: 'demo-user-125',
+      lastMessage: Message(
+        id: 'demo-msg-10',
+        conversationId: 'demo-conv-2',
+        senderId: 'demo-user-123',
+        receiverId: 'demo-user-125',
+        text: 'Our charts are incredibly compatible. Venus conjunct Jupiter!',
+        type: MessageType.text,
+        status: MessageStatus.sent,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+      lastMessageText: 'Our charts are incredibly compatible. Venus conjunct Jupiter!',
+      lastMessageTimestamp: DateTime.now().subtract(const Duration(days: 1)),
+      firstUserUnreadCount: 0,
+      secondUserUnreadCount: 1,
+      firstUserMuted: false,
+      secondUserMuted: false,
+      firstUserArchived: false,
+      secondUserArchived: false,
+      firstUserDeleted: false,
+      secondUserDeleted: false,
+      createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+    ),
+  ];
+
+  /// Demo messages for testing
+  final Map<String, List<Message>> _demoMessages = {
+    'demo-conv-1': [
+      Message(
+        id: 'demo-msg-1',
+        conversationId: 'demo-conv-1',
+        senderId: 'demo-user-123',
+        receiverId: 'demo-user-124',
+        text: 'Hi there! I noticed we\'re both Aries. That\'s so cool!',
+        type: MessageType.text,
+        status: MessageStatus.read,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 2, hours: 1)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 2, hours: 1)),
+      ),
+      Message(
+        id: 'demo-msg-2',
+        conversationId: 'demo-conv-1',
+        senderId: 'demo-user-124',
+        receiverId: 'demo-user-123',
+        text: 'Hey! Yes, I noticed that too. What\'s your rising sign?',
+        type: MessageType.text,
+        status: MessageStatus.read,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      Message(
+        id: 'demo-msg-3',
+        conversationId: 'demo-conv-1',
+        senderId: 'demo-user-123',
+        receiverId: 'demo-user-124',
+        text: 'I\'m a Libra rising. How about you?',
+        type: MessageType.text,
+        status: MessageStatus.read,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 1, hours: 12)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 1, hours: 12)),
+      ),
+      Message(
+        id: 'demo-msg-4',
+        conversationId: 'demo-conv-1',
+        senderId: 'demo-user-124',
+        receiverId: 'demo-user-123',
+        text: 'Taurus rising! Seems like we might be compatible. Would you like to check out our synastry chart?',
+        type: MessageType.text,
+        status: MessageStatus.read,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(hours: 5)),
+        updatedAt: DateTime.now().subtract(const Duration(hours: 5)),
+      ),
+      Message(
+        id: 'demo-msg-5',
+        conversationId: 'demo-conv-1',
+        senderId: 'demo-user-124',
+        receiverId: 'demo-user-123',
+        text: 'Looking forward to getting to know you better!',
+        type: MessageType.text,
+        status: MessageStatus.delivered,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
+      ),
+    ],
+    'demo-conv-2': [
+      Message(
+        id: 'demo-msg-6',
+        conversationId: 'demo-conv-2',
+        senderId: 'demo-user-125',
+        receiverId: 'demo-user-123',
+        text: 'Hi! I saw your profile and I think we have a lot in common.',
+        type: MessageType.text,
+        status: MessageStatus.read,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 5)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 5)),
+      ),
+      Message(
+        id: 'demo-msg-7',
+        conversationId: 'demo-conv-2',
+        senderId: 'demo-user-123',
+        receiverId: 'demo-user-125',
+        text: 'Hey! Nice to meet you. What aspects of astrology are you most interested in?',
+        type: MessageType.text,
+        status: MessageStatus.read,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 4)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 4)),
+      ),
+      Message(
+        id: 'demo-msg-8',
+        conversationId: 'demo-conv-2',
+        senderId: 'demo-user-125',
+        receiverId: 'demo-user-123',
+        text: 'I\'m really into planetary transits and how they affect daily life. You?',
+        type: MessageType.text,
+        status: MessageStatus.read,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 3)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 3)),
+      ),
+      Message(
+        id: 'demo-msg-9',
+        conversationId: 'demo-conv-2',
+        senderId: 'demo-user-125',
+        receiverId: 'demo-user-123',
+        text: 'Check out this beautiful location for our first date!',
+        type: MessageType.location,
+        status: MessageStatus.read,
+        locationLatitude: 37.7749,
+        locationLongitude: -122.4194,
+        locationName: 'Golden Gate Park, San Francisco',
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      Message(
+        id: 'demo-msg-10',
+        conversationId: 'demo-conv-2',
+        senderId: 'demo-user-123',
+        receiverId: 'demo-user-125',
+        text: 'Our charts are incredibly compatible. Venus conjunct Jupiter!',
+        type: MessageType.text,
+        status: MessageStatus.sent,
+        isDeleted: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+    ],
+  };
+
   /// Get conversations by user ID
   Future<List<Conversation>> getConversationsByUserId(String userId) async {
+    // Return demo conversations if in demo mode
+    if (isDemoMode && userId == 'demo-user-123') {
+      return _demoConversations;
+    }
+    
     final response = await SupabaseService.from(_conversationsTable)
         .select()
         .or('user1_id.eq.$userId,user2_id.eq.$userId')
@@ -101,6 +300,48 @@ class MessageService {
     String? cursor,
     bool loadNewer = false,
   }) async {
+    // Return demo messages if in demo mode
+    if (isDemoMode && _demoMessages.containsKey(conversationId)) {
+      final messages = List<Message>.from(_demoMessages[conversationId]!);
+      
+      // Sort messages by created_at
+      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      
+      // Apply pagination logic
+      if (cursor != null) {
+        final cursorDate = DateTime.parse(cursor);
+        if (loadNewer) {
+          messages.removeWhere((message) => message.createdAt.isBefore(cursorDate) || 
+                                           message.createdAt.isAtSameMomentAs(cursorDate));
+        } else {
+          messages.removeWhere((message) => message.createdAt.isAfter(cursorDate) || 
+                                           message.createdAt.isAtSameMomentAs(cursorDate));
+          messages.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Reverse for older messages
+        }
+      } else if (!loadNewer) {
+        // Initial load, get most recent messages
+        messages.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      }
+      
+      // Apply limit
+      final hasMore = messages.length > pageSize;
+      final paginatedMessages = messages.take(pageSize).toList();
+      
+      // Get the new cursor
+      String? nextCursor;
+      if (paginatedMessages.isNotEmpty) {
+        nextCursor = loadNewer
+            ? paginatedMessages.last.createdAt.toIso8601String()
+            : paginatedMessages.first.createdAt.toIso8601String();
+      }
+      
+      return PaginatedMessages(
+        messages: paginatedMessages,
+        nextCursor: nextCursor,
+        hasMore: hasMore,
+      );
+    }
+    
     var query = SupabaseService.from(_messagesTable)
         .select()
         .eq('conversation_id', conversationId);
@@ -365,6 +606,57 @@ class MessageService {
     required String text,
     String? imageUrl,
   }) async {
+    // Handle demo mode
+    if (isDemoMode) {
+      // Find the conversation
+      final conversation = _demoConversations.firstWhere(
+        (c) => c.id == conversationId,
+        orElse: () => throw Exception('Conversation not found'),
+      );
+      
+      final receiverId = conversation.firstUserId == senderId
+          ? conversation.secondUserId
+          : conversation.firstUserId;
+          
+      final now = DateTime.now();
+      final messageId = 'demo-msg-${now.millisecondsSinceEpoch}';
+      
+      final newMessage = Message(
+        id: messageId,
+        conversationId: conversationId,
+        senderId: senderId,
+        receiverId: receiverId,
+        text: text,
+        type: imageUrl != null ? MessageType.image : MessageType.text,
+        status: MessageStatus.sent,
+        mediaUrl: imageUrl,
+        isDeleted: false,
+        createdAt: now,
+        updatedAt: now,
+      );
+      
+      // Add message to demo messages
+      if (_demoMessages.containsKey(conversationId)) {
+        _demoMessages[conversationId]!.add(newMessage);
+      } else {
+        _demoMessages[conversationId] = [newMessage];
+      }
+      
+      // Update conversation last message
+      final convIndex = _demoConversations.indexWhere((c) => c.id == conversationId);
+      if (convIndex >= 0) {
+        _demoConversations[convIndex] = _demoConversations[convIndex].copyWith(
+          lastMessage: () => newMessage,
+          lastMessageText: () => text,
+          lastMessageTimestamp: now,
+          updatedAt: now,
+        );
+      }
+      
+      return newMessage;
+    }
+    
+    // Normal flow for non-demo mode
     // Get the conversation to determine the receiver ID
     final conversation = await getConversationById(conversationId);
     if (conversation == null) {

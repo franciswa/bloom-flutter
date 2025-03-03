@@ -26,12 +26,101 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
+  bool _isSocialLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  /// Build a social login button
+  Widget _buildSocialLoginButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      icon: Icon(icon),
+      label: Text(label),
+      onPressed: _isSocialLoading ? null : onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+    );
+  }
+
+  /// Sign in with Google
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isSocialLoading = true;
+    });
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    try {
+      await authProvider.signInWithGoogle();
+
+      if (!mounted) return;
+
+      // Navigate to home or onboarding based on profile completion
+      if (authProvider.isProfileComplete) {
+        context.go(AppRoutes.home);
+      } else {
+        context.go(AppRoutes.onboarding);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      UIHelpers.showErrorDialog(
+        context: context,
+        title: 'Google Sign In Failed',
+        message: UIHelpers.getErrorMessage(e),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSocialLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Sign in with Apple
+  Future<void> _signInWithApple() async {
+    setState(() {
+      _isSocialLoading = true;
+    });
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    try {
+      await authProvider.signInWithApple();
+
+      if (!mounted) return;
+
+      // Navigate to home or onboarding based on profile completion
+      if (authProvider.isProfileComplete) {
+        context.go(AppRoutes.home);
+      } else {
+        context.go(AppRoutes.onboarding);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      UIHelpers.showErrorDialog(
+        context: context,
+        title: 'Apple Sign In Failed',
+        message: UIHelpers.getErrorMessage(e),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSocialLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _login() async {
@@ -151,7 +240,34 @@ class _LoginScreenState extends State<LoginScreen> {
                           text: 'Sign In',
                           onPressed: _login,
                         ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text('OR'),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildSocialLoginButton(
+                        icon: Icons.g_mobiledata,
+                        label: 'Google',
+                        onPressed: _signInWithGoogle,
+                      ),
+                      _buildSocialLoginButton(
+                        icon: Icons.apple,
+                        label: 'Apple',
+                        onPressed: _signInWithApple,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

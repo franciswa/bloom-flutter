@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/helpers/ui_helpers.dart';
 import '../../utils/validators.dart';
@@ -154,12 +153,12 @@ class _BirthInformationScreenState extends State<BirthInformationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Your Birth Details',
                   style: TextStyles.headline2,
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   'We need your birth information to calculate your astrological chart.',
                   style: TextStyles.body1,
                 ),

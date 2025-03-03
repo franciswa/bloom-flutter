@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
@@ -6,6 +5,7 @@ import 'auth_provider.dart';
 import 'chart_provider.dart';
 import 'compatibility_provider.dart';
 import 'date_preference_provider.dart';
+import 'date_request_manager_provider.dart';
 import 'match_provider.dart';
 import 'message_provider.dart';
 import 'notification_provider.dart';
@@ -147,6 +147,22 @@ class ProviderRegistry {
         ),
         update: (context, authProvider, previous) {
           previous!.updateAuthProvider(authProvider: authProvider);
+          return previous;
+        },
+      ),
+
+      // Date request manager provider
+      ChangeNotifierProxyProvider2<MessageProvider, DatePreferenceProvider,
+          DateRequestManagerProvider>(
+        create: (context) => DateRequestManagerProvider(
+          messageProvider: Provider.of<MessageProvider>(context, listen: false),
+          datePreferenceProvider:
+              Provider.of<DatePreferenceProvider>(context, listen: false),
+        ),
+        update: (context, messageProvider, datePreferenceProvider, previous) {
+          previous!.updateMessageProvider(messageProvider: messageProvider);
+          previous.updateDatePreferenceProvider(
+              datePreferenceProvider: datePreferenceProvider);
           return previous;
         },
       ),

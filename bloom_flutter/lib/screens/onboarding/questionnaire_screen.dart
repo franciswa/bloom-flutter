@@ -38,12 +38,12 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
 
     try {
       final questionnaireProvider = Provider.of<QuestionnaireProvider>(
-        context, 
+        context,
         listen: false,
       );
-      
+
       final questions = await questionnaireProvider.getCompatibilityQuestions();
-      
+
       setState(() {
         _questions = questions;
         _answers.clear();
@@ -54,7 +54,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       setState(() {
         _isLoading = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error loading questions: $e'),
@@ -88,42 +88,67 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     }
   }
 
+  // Check if all questions have been answered
+  bool _allQuestionsAnswered() {
+    return !_answers.contains(-1);
+  }
+
   Future<void> _submitQuestionnaire() async {
     if (_questions == null) return;
-    
+
+    // Check if all questions have been answered
+    if (!_allQuestionsAnswered()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please answer all questions before submitting'),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      // Find the first unanswered question and navigate to it
+      final firstUnansweredIndex = _answers.indexOf(-1);
+      if (firstUnansweredIndex != -1) {
+        setState(() {
+          _currentQuestionIndex = firstUnansweredIndex;
+        });
+      }
+
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final questionnaireProvider = Provider.of<QuestionnaireProvider>(
-        context, 
+        context,
         listen: false,
       );
-      
+
       // Create a map of question IDs to answer indices
       final Map<String, int> questionAnswers = {};
       for (int i = 0; i < _questions!.length; i++) {
         questionAnswers[_questions![i].id] = _answers[i];
       }
-      
+
       await questionnaireProvider.submitCompatibilityQuestionnaire(
         questionAnswers,
       );
-      
+
       setState(() {
         _isLoading = false;
       });
-      
-      // Navigate to home screen
+
+      // Navigate to date suggestions screen (first tab)
       if (mounted) {
-        context.go(AppRoutes.home);
+        context.go(AppRoutes.dateSuggestions);
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error submitting questionnaire: $e'),
@@ -147,6 +172,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Compatibility Questionnaire'),
+          automaticallyImplyLeading: false, // Remove back button
         ),
         body: Center(
           child: Column(
@@ -171,6 +197,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Compatibility Questionnaire'),
+        automaticallyImplyLeading: false, // Remove back button
       ),
       body: Column(
         children: [
@@ -178,9 +205,9 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
           LinearProgressIndicator(
             value: (_currentQuestionIndex + 1) / _questions!.length,
             backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
-          
+
           // Question counter
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -189,7 +216,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
               style: TextStyles.subtitle2,
             ),
           ),
-          
+
           // Question
           Expanded(
             child: SingleChildScrollView(
@@ -202,7 +229,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
                     style: TextStyles.headline3,
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Answers
                   ...List.generate(
                     5, // 5 standard options from AnswerOption enum
@@ -216,7 +243,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
               ),
             ),
           ),
-          
+
           // Navigation buttons
           Padding(
             padding: const EdgeInsets.all(24.0),
@@ -232,7 +259,7 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
                   )
                 else
                   const SizedBox(width: 80),
-                
+
                 // Next/Submit button
                 CustomButton(
                   text: isLastQuestion ? 'Submit' : 'Next',

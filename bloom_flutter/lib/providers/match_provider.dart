@@ -352,12 +352,15 @@ class MatchProvider extends ChangeNotifier {
     }
 
     final currentUserId = _authProvider.currentUser!.id;
-    return _matches.firstWhere(
-      (m) =>
-          (m.user1Id == currentUserId && m.user2Id == userId) ||
-          (m.user1Id == userId && m.user2Id == currentUserId),
-      orElse: () => null as Match,
-    );
+    try {
+      return _matches.firstWhere(
+        (m) =>
+            (m.user1Id == currentUserId && m.user2Id == userId) ||
+            (m.user1Id == userId && m.user2Id == currentUserId),
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Refresh matches
