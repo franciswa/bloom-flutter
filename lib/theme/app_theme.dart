@@ -93,7 +93,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
+          foregroundColor: Colors.black,
           textStyle: TextStyles.button,
           padding: const EdgeInsets.symmetric(
             horizontal: 24,
@@ -358,7 +358,7 @@ class AppTheme {
       // Floating action button theme
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
+        foregroundColor: Colors.black,
         elevation: 6,
         highlightElevation: 12,
         shape: CircleBorder(),
