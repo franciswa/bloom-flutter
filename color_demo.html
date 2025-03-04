@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloom Color Scheme Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2E7D32;
+        }
+        .color-section {
+            margin-bottom: 30px;
+        }
+        .color-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .color-box {
+            width: 100px;
+            height: 50px;
+            margin-right: 20px;
+            border: 1px solid #ccc;
+        }
+        .text-on-color {
+            width: 150px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            border: 1px solid #ccc;
+        }
+        .color-info {
+            flex: 1;
+        }
+        .color-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .color-hex {
+            font-family: monospace;
+            color: #555;
+        }
+        .ui-components {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .primary-button {
+            background-color: #BAF2BB;
+            color: #2E7D32;
+            border: none;
+        }
+        .secondary-button {
+            background-color: transparent;
+            color: #BAF2BB;
+            border: 2px solid #BAF2BB;
+        }
+        .text-button {
+            background-color: transparent;
+            color: #BAF2BB;
+            border: none;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bloom Color Scheme Demo</h1>
+    
+    <div class="color-section">
+        <h2>Primary Colors</h2>
+        <div class="color-row">
+            <div class="color-box" style="background-color: #BAF2BB;"></div>
+            <div class="color-info">
+                <div class="color-name">Primary</div>
+                <div class="color-hex">#BAF2BB</div>
+            </div>
+        </div>
+        <div class="color-row">
+            <div class="color-box" style="background-color: #8AD18B;"></div>
+            <div class="color-info">
+                <div class="color-name">Primary Variant</div>
+                <div class="color-hex">#8AD18B</div>
+            </div>
+        </div>
+        <div class="color-row">
+            <div class="color-box" style="background-color: #DCF9DD;"></div>
+            <div class="color-info">
+                <div class="color-name">Primary Light</div>
+                <div class="color-hex">#DCF9DD</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="color-section">
+        <h2>Secondary Colors</h2>
+        <div class="color-row">
+            <div class="color-box" style="background-color: #FFE8D7;"></div>
+            <div class="color-info">
+                <div class="color-name">Secondary</div>
+                <div class="color-hex">#FFE8D7</div>
+            </div>
+        </div>
+        <div class="color-row">
+            <div class="color-box" style="background-color: #EED3C0;"></div>
+            <div class="color-info">
+                <div class="color-name">Secondary Variant</div>
+                <div class="color-hex">#EED3C0</div>
+            </div>
+        </div>
+        <div class="color-row">
+            <div class="color-box" style="background-color: #FFF5ED;"></div>
+            <div class="color-info">
+                <div class="color-name">Secondary Light</div>
+                <div class="color-hex">#FFF5ED</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="color-section">
+        <h2>Text on Colors</h2>
+        <div class="color-row">
+            <div class="text-on-color" style="background-color: #BAF2BB; color: #2E7D32;">
+                Sample Text
+            </div>
+            <div class="color-info">
+                <div class="color-name">Text on Primary</div>
+                <div class="color-hex">Background: #BAF2BB, Text: #2E7D32</div>
+            </div>
+        </div>
+        <div class="color-row">
+            <div class="text-on-color" style="background-color: #FFE8D7; color: #5D4037;">
+                Sample Text
+            </div>
+            <div class="color-info">
+                <div class="color-name">Text on Secondary</div>
+                <div class="color-hex">Background: #FFE8D7, Text: #5D4037</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="color-section">
+        <h2>UI Components with New Colors</h2>
+        <div class="ui-components">
+            <button class="button primary-button">Primary Button</button>
+            <button class="button secondary-button">Secondary Button</button>
+            <button class="button text-button">Text Button</button>
+        </div>
+    </div>
+</body>
+</html>
